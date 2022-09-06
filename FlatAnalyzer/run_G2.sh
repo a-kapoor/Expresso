@@ -1,0 +1,1 @@
+time python Skimmer.py --name G2 --file '/eos/user/c/cyuan/G2/rootfile/G2.root' --saveroot --outfolder G2 --debugprint --analysis Ana/G2/ --outsuffix test --xsec 1 --multithreaded --istype mc --tree LHEF

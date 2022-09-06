@@ -1,1 +1,1 @@
-time python Skimmer.py --name TTHTagger --file 'root://t3se01.psi.ch:1094//store/user/sesanche/NanoTrees_forAnshul/2016/TTHad_pow.root' --saveroot --outfolder Output --debugprint --analysis Analyses/TTHTagger/ --outsuffix TTHTagger --xsec 1 --multithreaded --istype mc
+time python Skimmer.py --name LLP --file '/eos/user/c/cyuan/LLP/ATLAS-CMS/root/without_seed42.root' --saveroot --outfolder LLP --debugprint --analysis Ana/LLP/ --outsuffix without_seed42 --xsec 1 --multithreaded --istype mc --tree Events
