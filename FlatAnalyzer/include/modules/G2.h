@@ -11,151 +11,34 @@ using Vec_t = const ROOT::RVec<float>&;
 using RVecF = RVec<float>;
 using RVecI = RVec<int>;
 
-RVecF Get_Photon_PT(RVecI Particle_PID, RVecF Particle_PT){
-    int count_photon=0;
+RVecI Get_P_Position(RVecI Particle_PID, int PID){
+    int count_p=0;
+    int p_position=0;
     int l=0;
     for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
+        if (Particle_PID[k]==PID){
+            count_p=count_p+1;
         }
     }
-    RVecF Photon_PT(count_photon);
+    RVecI P_Position(count_p);
     for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_PT[l]=Particle_PT[i];
+        if (Particle_PID[i]==PID){
+            P_Position[l]=i;
             l=l+1;
         }
     }
-    return Photon_PT;
+    return P_Position;
 }
 
-RVecF Get_Photon_Px(RVecI Particle_PID, RVecF Particle_Px){
-    int count_photon=0;
+RVecF Get_P_Vector(RVecI P_Position, RVecF Particle_Vector){
     int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_Px(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_Px[l]=Particle_Px[i];
+    RVecF New_Particle_Vector(P_Position.size());
+    for(size_t i=0;i<P_Position.size();i++){
+            New_Particle_Vector[l]=Particle_Vector[P_Position[i]];
             l=l+1;
-        }
     }
-    return Photon_Px;
+    return New_Particle_Vector;
 }
-
-RVecF Get_Photon_Py(RVecI Particle_PID, RVecF Particle_Py){
-    int count_photon=0;
-    int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_Py(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_Py[l]=Particle_Py[i];
-            l=l+1;
-        }
-    }
-    return Photon_Py;
-}
-
-
-RVecF Get_Photon_Pz(RVecI Particle_PID, RVecF Particle_Pz){
-    int count_photon=0;
-    int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_Pz(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_Pz[l]=Particle_Pz[i];
-            l=l+1;
-        }
-    }
-    return Photon_Pz;
-}
-
-RVecF Get_Photon_energy(RVecI Particle_PID, RVecF Particle_energy){
-    int count_photon=0;
-    int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_energy(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_energy[l]=Particle_energy[i];
-            l=l+1;
-        }
-    }
-    return Photon_energy;
-}
-
-RVecF Get_Photon_mass(RVecI Particle_PID, RVecF Particle_mass){
-    int count_photon=0;
-    int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_mass(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_mass[l]=Particle_mass[i];
-            l=l+1;
-        }
-    }
-    return Photon_mass;
-}
-
-RVecF Get_Photon_eta(RVecI Particle_PID, RVecF Particle_eta){
-    int count_photon=0;
-    int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_eta(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_eta[l]=Particle_eta[i];
-            l=l+1;
-        }
-    }
-    return Photon_eta;
-}
-
-RVecF Get_Photon_phi(RVecI Particle_PID, RVecF Particle_phi){
-    int count_photon=0;
-    int l=0;
-    for(size_t k=0; k<Particle_PID.size(); k++){
-        if (Particle_PID[k]==22){
-            count_photon=count_photon+1;
-        }
-    }
-    RVecF Photon_phi(count_photon);
-    for(size_t i=0;i<Particle_PID.size();i++){
-        if (Particle_PID[i]==22){
-            Photon_phi[l]=Particle_phi[i];
-            l=l+1;
-        }
-    }
-    return Photon_phi;
-}
-
 
 
 
