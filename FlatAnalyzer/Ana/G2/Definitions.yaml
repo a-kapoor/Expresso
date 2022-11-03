@@ -1,0 +1,18 @@
+Particle_PID : Particle.PID
+Particle_PT: Particle.PT
+Particle_Px: Particle.Px
+Particle_Py: Particle.Py
+Particle_Pz: Particle.Pz
+Particle_energy: Particle.E
+Particle_mass: Particle.M
+Particle_eta: Particle.Eta
+Particle_phi: Particle.Phi
+Photon_Position: Get_P_Position(Particle_PID, 22)
+Photon_PT: Get_P_Vector(Photon_Position, Particle_PT)
+Photon_Px: Get_P_Vector(Photon_Position, Particle_Px)
+Photon_Py: Get_P_Vector(Photon_Position, Particle_Py)
+Photon_Pz: Get_P_Vector(Photon_Position, Particle_Pz)
+Photon_energy: Get_P_Vector(Photon_Position, Particle_energy)
+Photon_mass: Get_P_Vector(Photon_Position, Particle_mass)
+Photon_eta: Get_P_Vector(Photon_Position, Particle_eta)
+Photon_phi: Get_P_Vector(Photon_Position, Particle_phi)

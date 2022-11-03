@@ -6,6 +6,7 @@
 
 import argparse
 import os
+from tkinter.tix import Tree
 
 if hasattr(__builtins__,'__IPYTHON__'):
     sysName='DY'
@@ -18,6 +19,7 @@ if hasattr(__builtins__,'__IPYTHON__'):
     multithreaded=False
     xsec=1.00
     istype='mc'
+    tree='Events'
     #!python3 -m pip install correctionlib
     path = '/eos/user/a/akapoor/.local/bin'
     os.environ['PATH'] += ':'+path
@@ -34,6 +36,7 @@ else:
     parser.add_argument('--multithreaded', action='store_true', help='mt',default=False)
     parser.add_argument('--xsec', metavar='xsec', action='store', type=float, help='xsec',default=1,required=True )
     parser.add_argument('--istype', metavar='istype', action='store', type=str, help='data or mc',default='mc',required=True )
+    parser.add_argument('--tree',metavar='tree', action='store', type=str, help='LHEF or Events', default='Events', required=True)
     #parser.add_argument('--branchlist', metavar='bl', action='store', type=str,help='branches to store in skim',default="(MyElectron_eta|MyElectron_pt)")
     args = parser.parse_args()
     
@@ -47,6 +50,7 @@ else:
     multithreaded=args.multithreaded
     xsec=args.xsec
     istype=args.istype
+    tree=args.tree
     #branchlist=str(args.branchlist)
 
 os.system("mkdir OutputFiles")    
@@ -185,7 +189,7 @@ if ApplyWeights is not None:
     
     
 processname=sysName
-processdict={'Files':sysfiles,'Type':istype,'Tree':'Events','Xsec':xsec}
+processdict={'Files':sysfiles,'Type':istype,'Tree': tree,'Xsec':xsec}
 Ana.process(processname,processdict)
 
 
