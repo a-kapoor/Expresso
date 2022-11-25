@@ -46,7 +46,10 @@ def autolog(message,logger,level="i"):
         print(message)
 '''---------------------------------------------------------------------------'''
 #----------------------------------------------------------------------
+
 def saveroot(threadn,logger,varslist,filename='sample',outputfolder='./'):
+    import ROOT
+    import glob
 
     #import logging
     #logger = logging.getLogger(__name__)
@@ -55,12 +58,15 @@ def saveroot(threadn,logger,varslist,filename='sample',outputfolder='./'):
 
     os.system(f'mkdir -p {outputfolder}/{filename}/')
     outputfolder=outputfolder+'/'+filename+'/'
-    import ROOT
-    filename=outputfolder+'/'+filename+'_sub-job_'+str(threadn)+'.root'
     for key in varslist.keys():
         varslist[key]=ak.to_numpy(ak.fill_none(varslist[key],-9999))
     df = ROOT.RDF.MakeNumpyDataFrame(varslist)
-    df.Snapshot("Events",filename)
+    countsame=0
+    for f_name in os.listdir(outputfolder):
+            if f_name.startswith(filename+'_sub-job_'+str(threadn)) and f_name.endswith('.root'):
+                    countsame=countsame+1
+    filename=outputfolder+'/'+filename+'_sub-job_'+str(threadn)+"_"+str(countsame)
+    df.Snapshot("Events",filename+'.root')
     return filename
 
 #--------------------------------------------------------------------- Sorter by conept
@@ -68,6 +74,9 @@ def sortconept(obj):
     obj[ak.argsort(obj.conept, axis=-1,ascending=False)]
     return obj
 #---------------------------------------------------------------------
+def sortpt(obj):
+    obj[ak.argsort(obj.pt, axis=-1,ascending=False)]
+    return obj
 
 
 def cprint(text,c):
@@ -135,4 +144,5 @@ def getInfo(events,samples):
     year               = samples["year"]
     xsec               = samples["xsec"]
     sow                = samples["nSumOfWeights"]
+    nEvents                = samples["nEvents"]
     return dataset,isData,histAxisName,year,xsec,sow
