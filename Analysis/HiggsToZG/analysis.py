@@ -10,14 +10,6 @@ from modules.hcoll import binning
     ############################# KEEP THIS BLOCK ##################
 histograms = {
     ############################# KEEP THIS BLOCK ##################
-
-    '''
-    'M_tt':hist.Hist('Events',hist.Cat('process', 'process'),hist.Bin('M_tt', 'M_tt(GeV)', binning(20,120,1))),
-    'M_ee':hist.Hist('Events',hist.Cat('process', 'process'),hist.Bin('M_ee', 'M_ee(GeV)', binning(20,120,1))),
-    'M_uu':hist.Hist('Events',hist.Cat('process', 'process'),hist.Bin('M_uu', 'M_uu(GeV)', binning(20,120,1))),
-    'Tau_pt':hist.Hist('Events',hist.Cat('process', 'process'),hist.Bin('Tau_pt', 'Tau_pt(GeV)', binning(0,300,1))),
-    '''
-
     'Meeg':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Meeg", "Mllg", 200,100,200)),
     'Mmmg':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmmg", "Mllg", 200,100,200)),
     'Mttg':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mttg", "Mllg", 200,100,200))
@@ -49,22 +41,24 @@ def myanalysis(pars, logger, h, ev, doweight=True):
             #ev["weight_norm"] =1
          else:
             
-            ev["weight_norm"]=1/ev['nAnalysisEvents']
+            ev["weight_norm"]=1
 
-    events["recoEle"]=events.Electron[(events.Electron.cutBased >=3) & (events.Electron.pt > 0) & (abs(events.Electron.eta)<2.5)]
-    events["recoMu"]=events.Muon[(events.Muon.mediumId==True) & (events.Muon.pt > 20) & (abs(events.Muon.eta)<2.1)]
-    events["recoTau"]=events.Tau[(events.Tau.idDecayModeNewDMs==True) & (events.Tau.idAntiMu>=1) & (events.Tau.idAntiEle>=1)
-                                 & (events.Tau.pt > 30) &  (abs(events.Tau.eta)<2.5)]  ##idAntiMu is important else it gives muons --> ask Anshul if Chao Chen applies it
+    ev["recoEle"]=ev.Electron[(ev.Electron.cutBased >=3) & (ev.Electron.pt > 0) & (abs(ev.Electron.eta)<2.5)]
+    ev["recoMu"]=ev.Muon[(ev.Muon.mediumId==True) & (ev.Muon.pt > 20) & (abs(ev.Muon.eta)<2.1)]
+    #ev["recoTau"]=ev.Tau[(ev.Tau.idDecayModeOldDMs==True) & (ev.Tau.idAntiMu>=1) & (ev.Tau.idAntiEle>=1)
+                                 #& (ev.Tau.pt > 30) &  (abs(ev.Tau.eta)<2.5)]  ##idAntiMu is important else it gives muons --> ask Anshul if Chao Chen applies it # AK: My tree did not have the anti variables with the same name, so just commenting, but just a matter of using different nano version.
+    ev["recoTau"]=ev.Tau[(ev.Tau.idDecayModeOldDMs==True) & (ev.Tau.pt > 30) &  (abs(ev.Tau.eta)<2.5)]  ##idAntiMu is important else it gives muons --> ask Anshul if Chao Chen applies it
 
-    events["recoPho"]=events.Photon[(events.Photon.cutBasedBitmap >=2) & (events.Photon.pt > 20) & (abs(events.Photon.eta)<2.5)]
+    ev["Photon","cutBasedBitmap"]=ev.Photon.vidNestedWPBitmap # adding because my nano is v9 and the name is vidNestedWPBitmap
+    ev["recoPho"]=ev.Photon[(ev.Photon.cutBasedBitmap >=2) & (ev.Photon.pt > 20) & (abs(ev.Photon.eta)<2.5)]
 
-    events["recoEle2"] = (ak.num(events.recoEle) >= 2) & (ak.num(events.recoPho) >= 1)
-    events["recoMu2"] = (ak.num(events.recoMu) >= 2) & (ak.num(events.recoPho) >= 1)
-    events["recoTau2"] = (ak.num(events.recoTau) >= 2) & (ak.num(events.recoPho) >= 1)
+    ev["recoEle2"] = (ak.num(ev.recoEle) >= 2) & (ak.num(ev.recoPho) >= 1)
+    ev["recoMu2"] = (ak.num(ev.recoMu) >= 2) & (ak.num(ev.recoPho) >= 1)
+    ev["recoTau2"] = (ak.num(ev.recoTau) >= 2) & (ak.num(ev.recoPho) >= 1)
 
-    events_2Ele = events[events.recoEle2==True]
-    events_2Mu = events[events.recoMu2==True]
-    events_2Tau = events[events.recoTau2==True]
+    events_2Ele = ev[ev.recoEle2==True]
+    events_2Mu = ev[ev.recoMu2==True]
+    events_2Tau = ev[ev.recoTau2==True]
     
     events_2Ele["dRl1g"] = events_2Ele.Photon[:,0].delta_r(events_2Ele.Electron[:,0])
     events_2Ele["dRl2g"] = events_2Ele.Photon[:,0].delta_r(events_2Ele.Electron[:,1])
@@ -98,9 +92,15 @@ def myanalysis(pars, logger, h, ev, doweight=True):
 
 
     ###################################################
-    hists.fill('Meeg',events_Ele_final_MW.weight_norm, Meeg=events_Ele_final_MW.llg.mass)
-    hists.fill('Mmmg',events_Mu_final_MW.weight_norm, Mmmg=events_Mu_final_MW.llg.mass)
-    hists.fill('Mttg',events_Tau_final_MW.weight_norm, Mttg=events_Tau_final_MW.llg.mass)
+
+    ##My hist is a wrapper around original hist to also include a selection right at the time of storing plot.
+    ##Added a very basic selection for now, which selects all events
+    #basically
+    ##  hists.fill(nameofhistogram,normalization,verybasicselection, event_object_whose_attribute_you_want_to_access,axisname="attribute")
+    
+    hists.fill('Meeg',events_Ele_final_MW.weight_norm,(events_Ele_final_MW.event>0), events_Ele_final_MW.llg,Meeg="mass")
+    hists.fill('Mmmg',events_Mu_final_MW.weight_norm,(events_Mu_final_MW.event>0), events_Mu_final_MW.llg, Mmmg="mass")
+    hists.fill('Mttg',events_Tau_final_MW.weight_norm,(events_Tau_final_MW.event>0), events_Tau_final_MW.llg, Mttg="mass")
 
     ############################# KEEP THIS BLOCK ##################
     ET.autolog(f"{len(ev)} Events at the end of your analysis", logger, 'i')

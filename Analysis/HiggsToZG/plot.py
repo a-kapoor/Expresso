@@ -3,10 +3,10 @@ from modules.ExpressoPlotter import ExpressoPlotter,normalplot
 #Output/Analysis/HiggsToZG/output/analysis/GluGluHToZG.pkl.gz
 plotter=ExpressoPlotter("2017")
 plotter.histolocation('Output/Analysis/HiggsToZG/output/analysis/')
-plotter.savelocation('./')
+plotter.savelocation('./Output/plots/')
 plotter.settings('modules/plotsettings.yaml')
 
-plotter.addfile('ggH','GluGluHToZG.pkl.gz','red','nostack',-1)
+plotter.addfile('ggH','GluGluHToZG.pkl.gz','red','nostack',-1) ## -1 normalizes to 1
 #plotter.addfile('test1','test_anap_tight.pkl.gz','blue','stack',-1)
 #plotter.addfile('test2','test_anap_tight.pkl.gz','green','stack',2)
 
