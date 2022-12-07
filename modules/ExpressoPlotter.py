@@ -98,7 +98,6 @@ class ExpressoPlotter():
                             'coffehists':self.get_hist_from_pkl(self._loc+'/'+file),
                             #'h':self.get_hist_from_pkl(self._loc+'/'+file,tohist=True)
                            })
-        print(self.get_hist_from_pkl(self._loc+'/'+file,True))
     def gethist(self,filename,hi):
         file_a=None
         for plotterfile in plotter._files:
