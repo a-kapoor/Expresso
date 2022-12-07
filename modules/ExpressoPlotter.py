@@ -9,6 +9,7 @@ except ImportError:
     import pickle
 #import hist
 import coffea.hist as hist
+import hist as skhist
 from tabulate import tabulate
 import matplotlib.pyplot as plt
 plt.rcParams['figure.dpi'] = 200
@@ -121,7 +122,7 @@ class ExpressoPlotter():
     
 
 class normalplot():
-    def __init__(self,plotter,filename,hi,axis):
+    def __init__(self,plotter,filename,hi,axis,rebin=1):
         self.plotter=plotter
         self._files=plotter._files
         SSaveLocation=plotter._SSaveLocation
@@ -159,9 +160,9 @@ class normalplot():
                 nostackcolors.append(_color)
                 nostackscales.append(_scale)
         if len(stack)!=0:
-            hep.histplot([plotter.geths(st.to_hist(),scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+            hep.histplot([plotter.geths((st.to_hist())[:: skhist.rebin(rebin)],scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
         if len(nostack)!=0:
-            hep.histplot([plotter.geths(nst.to_hist(),scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,
+            hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,
                          color=nostackcolors)
 
         #if 'normal' in allkey or '2D' in allkey:
