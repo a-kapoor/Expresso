@@ -44,17 +44,18 @@ class ExpressoPlotter():
         settingspath = Path('modules/plotsettings.yaml')
         with open(settingspath) as stream:
             self._ps=yaml.safe_load(stream)
-        
+
     def settings(self,file):
         path = Path(file)
         with open(path) as stream:
             self._ps = yaml.safe_load(stream)
-        
+
     def get_hist_from_pkl(self, path_to_pkl,allow_empty=True,tohist=False):
         h = pickle.load( gzip.open(path_to_pkl) )
         if not allow_empty:
             h = {k:v for k,v in h.items() if v.values() != {}}
         if tohist:
+            print(h)
             return h.to_hist()
         else:
             return h
@@ -63,11 +64,11 @@ class ExpressoPlotter():
             return h*(1/sum(list(h.counts())))
         else:
             return h*scale
-    
+
     def dictprint(self, di):
         for key, value in di.items():
             print(key, ' : ', value)
-    
+
     def geterrratio(self,hi,typeunc='p'):
         ratio = (hi[0].values()/hi[1].values())
         if typeunc=='p':
@@ -80,7 +81,7 @@ class ExpressoPlotter():
             st = '$'+ra+'_{-'+d+'}^{+'+u+'}$'
             labels.append(st)
         return ratio,labels
-    
+
     def histolocation(self,loc):
         self._loc=loc
     def savelocation(self,loc):
@@ -89,14 +90,36 @@ class ExpressoPlotter():
         if not isExist:
             os.makedirs(self._SSaveLocation)
             print("created folder : ", self._SSaveLocation)
-            
-        
+
+
     def addfile(self,label,file,color,stack,scale):
         self._files.append({'label':label,'file':file,'color':color,'stack':stack,
                             'scale':scale,
                             'coffehists':self.get_hist_from_pkl(self._loc+'/'+file),
-                            'h':self.get_hist_from_pkl(self._loc+'/'+file,True)
+                            #'h':self.get_hist_from_pkl(self._loc+'/'+file,tohist=True)
                            })
+        print(self.get_hist_from_pkl(self._loc+'/'+file,True))
+    def gethist(self,filename,hi):
+        file_a=None
+        for plotterfile in plotter._files:
+            if plotterfile['label']==filename:
+                file_a=plotterfile['coffehists'][hi].to_hist()
+        if file_a != None:
+            return file_a
+        else:
+            print("wrong filename or hi or axis")
+            return 0
+    def getcoffeahist(self,filename,hi):
+        file_a=None
+        for plotterfile in plotter._files:
+            if plotterfile['label']==filename:
+                file_a=plotterfile['coffehists'][hi]
+        if file_a != None:
+            return file_a
+        else:
+            print("wrong filename or hi or axis")
+            return 0
+    
 
 class normalplot():
     def __init__(self,plotter,filename,hi,axis):
@@ -105,11 +128,11 @@ class normalplot():
         SSaveLocation=plotter._SSaveLocation
         if plotter._ps['hepstyle']=='ROOT':
             hep.style.use(hep.style.ROOT)
-        
+
         if plotter._ps['hepstyle']=='CMS':
             hep.style.use("CMS")
             hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year)
-            
+
         nostack=[]
         stack=[]
         nostacklabels=[]
@@ -118,10 +141,8 @@ class normalplot():
         stackcolors=[]
         stackscales=[]
         nostackscales=[]
-        
+
         for file in self._files:
-            _h=file['h'][hi]
-            print(file['h'][hi])
             _ch=file['coffehists'][hi]
             _color=file['color']
             _stack=file['stack']
