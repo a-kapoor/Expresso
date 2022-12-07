@@ -100,7 +100,7 @@ class ExpressoPlotter():
                            })
     def gethist(self,filename,hi):
         file_a=None
-        for plotterfile in plotter._files:
+        for plotterfile in self._files:
             if plotterfile['label']==filename:
                 file_a=plotterfile['coffehists'][hi].to_hist()
         if file_a != None:
