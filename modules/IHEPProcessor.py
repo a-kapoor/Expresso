@@ -148,7 +148,6 @@ class IHEPProcessor(processor.ProcessorABC):
         self._ET.autolog(f'#########-----------------------------------------------------########',self._logger,'qqqq')
 
         if self._debug:
-            print(events.Electron.fields)
             layout = ak.operations.convert.to_layout(events, allow_record=True, allow_other=True).keys()
             print(layout)
         
