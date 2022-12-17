@@ -127,8 +127,8 @@ class IHEPAnalysis:
         processor_instance=IHEPProcessor.IHEPProcessor(logfolder,treefolder,dt,ET,self.loglevel,self.AnalysisName,self.varstosave,
                                                        self.preprocess,self.preselect,self.analysis,
                                                        self.hists,sample,self.saveroot,self.passoptions,self.extraselection,self.analysispoint, self.debug)
-        if self.debug:
-            op(processor_instance)
+        #if self.debug:
+        #    op(processor_instance)
                 
         result = runner({sample["histAxisName"]:sample["files"]}, sample["treeName"],processor_instance)
         JobFolder=outfolder+'/output/'+OutputName+'/'

@@ -49,7 +49,7 @@ if __name__=='__main__':
     if args.Samples and args.Sample:
         sys.exit("You can not provide both --Sample and --Samples at the same time")
         
-    if args.Debug: pprint(vars(args))
+    #if args.Debug: pprint(vars(args))
         
     from modules.ExpressoTools import cprint,saveHist
 
@@ -125,10 +125,10 @@ if __name__=='__main__':
     Ana.SetVarsToSave(args.Analysis)
     #---------------------------
     #------------------- RunYourAnalysis #-------------------###########
-    if args.Debug: pprint(vars(Ana))
+    #if args.Debug: pprint(vars(Ana))
     runresults=Ana.run(OutputName=OutputName,xrootd=args.Xrootd,chunksize=int(args.ChunkSize),maxchunks=int(args.NumberOfTasks),
                                    mode=args.Mode, schema=args.Schema, port=int(args.Port))
-    if args.Debug: pprint(vars(Ana))
+    #if args.Debug: pprint(vars(Ana))
 
     for result,JobFolder,hname in runresults: 
         #------------------- Save the Histograms #-------------------###########
@@ -142,7 +142,9 @@ if __name__=='__main__':
         histfilename=histfilename
         saveHist(result,JobFolder,histfilename)
 
-        cprint(f'#---- pkl files with results: {JobFolder}/{histfilename}  ----#',"HEADER")
+        os.system(f"python modules/pkl2root.py {JobFolder}/{histfilename}.pkl.gz")
+
+        cprint(f'#---- pkl and root files with results: {JobFolder}/{histfilename}pkl.gz(and .root) ----#',"HEADER")
         cprint(f'#---- Make plots: ----#',"OKBLUE")
         cprint(f'#---- python plot+.py --PlotterScript *plot.py --HistoFolder ./* --SaveLocation ./*    ----#',"OKCYAN")
         cprint(f'#---- Analysis done! ----#',"OKBLUE")
