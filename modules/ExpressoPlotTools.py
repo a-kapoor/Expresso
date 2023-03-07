@@ -90,11 +90,17 @@ def alldictplot(histodictall,outputfolder,SSaveLocation='./',plotsetting='module
                                 
                         for k in histo.keys():
                                 print(f'{k}')
-                                thist=get_hist_from_pkl(outputfolder+"/"+files[histo[k]['file']])[k]
+                                if 'normal' in allkey:
+                                        thist=get_hist_from_pkl(outputfolder+"/"+files[histo[k]['file']])[k]
+                                        histo[k]['h']=(thist).project(histo[k]['axis'])
+                                if ('ratio' in allkey) and ('2Dratio' not in allkey):
+                                        kk=k.split(',')
+                                        thist=[None]*2
+                                        #print(outputfolder+"/"+files[histo[k]['file']])
+                                        thist[0]=get_hist_from_pkl(outputfolder+"/"+files[histo[k]['file']])[kk[0]].integrate('process')
+                                        thist[1]=get_hist_from_pkl(outputfolder+"/"+files[histo[k]['file']])[kk[1]].integrate('process')
                                 if '2Dratio' in allkey:
                                         histo[k]['h']=thist.project(histo[k]['xaxis'],histo[k]['yaxis'])
-                                else:
-                                        histo[k]['h']=(thist).project(histo[k]['axis'])
                                         
         
         
@@ -111,28 +117,36 @@ def alldictplot(histodictall,outputfolder,SSaveLocation='./',plotsetting='module
                                                 nostacklabels.append(args['label'])
                                                 nostackcolors.append(args['color'])
                                                 nostackscales.append(histo[k]['scale'])
-                    
-                        if 'ratio' in allkey:
+                                
+                                
+                        if ('ratio' in allkey):
+                                #ratio,labels=geterrratio(hi,typeunc='p')
+                                #print('------eff---------')
+                                #print(labels)
+                                #print('------CP---------')
+                                #print(labels)
                                 hi=[]
                                 hic=[]
-                                #print(histo.keys())
-                                for i,k in enumerate(histo.keys()):
-                                        #if k == 'args': continue
-                                        hi.append(histo[k]['h'].to_hist())
-                                        hic.append(histo[k]['h'])
-                                #ratio = (hi[0].view()/hi[1].view())
-                                ratio,labels=geterrratio(hi,typeunc='p')
-                                print('------eff---------')
-                                print(labels)
-                                ratio,labels=geterrratio(hi)
-                                print('------CP---------')
-                                print(labels)
-                                if '2D' in allkey:
+                                if '2D' in allkey:                                        #print(histo.keys())
+                                        for i,k in enumerate(histo.keys()):
+                                                hi.append(histo[k]['h'].to_hist())
+                                                hic.append(histo[k]['h'])
+                                        ratio,labels=geterrratio(hi)
                                         fig, ax = plt.subplots(figsize=tuple([z * 10 for z in ratio.shape]))
                                         labels = np.array(labels).reshape(ratio.shape)
                                         with open(f'{SSaveLocation}/{allkey}.txt', 'w') as fi:
                                                 fi.write(f'{labels}')
+                                        ybins=[i[0] for i in (hi[0]).axes[1]]
+                                        ybins.append(hi[0].axes[1][-1][1])
+                                        xbins=[(hi[0]).axes[0][i][0] for i in range(len((hi[0]).view()))]
+                                        xbins.append((hi[0]).axes[0][len((hi[0]).view())-1][1])
+                                        hep.hist2dplot(ratio, xbins=xbins,ybins=ybins,labels=labels, cmap=args['color'])
                                 else:
+                                        hi.append(thist[0].to_hist())
+                                        hi.append(thist[1].to_hist())
+                                        hic.append(thist[0])
+                                        hic.append(thist[1])
+                                        ratio,labels=geterrratio(hi)
                                         labels = np.array(labels)
                                         data=[]
                                         with open(f'{SSaveLocation}/{allkey}.txt', 'a') as fi:
@@ -144,14 +158,6 @@ def alldictplot(histodictall,outputfolder,SSaveLocation='./',plotsetting='module
                                                 fi.write("\n")
                                                 fi.write(tabulate(data, headers=["Bin", "Value"]))
                                                 fi.write("\n")
-                                if '2D' in allkey:
-                                        ybins=[i[0] for i in (hi[0]).axes[1]]
-                                        ybins.append(hi[0].axes[1][-1][1])
-                                        xbins=[(hi[0]).axes[0][i][0] for i in range(len((hi[0]).view()))]
-                                        xbins.append((hi[0]).axes[0][len((hi[0]).view())-1][1])
-                                        hep.hist2dplot(ratio, xbins=xbins,ybins=ybins,labels=labels, cmap=args['color'])
-                                        #hist.plotratio(hi[0], xbins=xbins,ybins=ybins,labels=labels, cmap=args['color'])
-                                else:
                                         bins=[(hi[0]).axes[0][i][0] for i in range(len((hi[0]).view()))]
                                         bins.append((hi[0]).axes[0][len((hi[0]).view())-1][1])
                                         #hep.histplot(ratio, bins=bins, color=args['color'], label=args['label'])
@@ -161,6 +167,7 @@ def alldictplot(histodictall,outputfolder,SSaveLocation='./',plotsetting='module
                                                                     , 'markersize': 10.,'color': color,  'elinewidth': 1},
                                                        unc='clopper-pearson',
                                                        clear=False)
+                                        
 
                 if 'xrotation' in args.keys(): plt.xticks(rotation=args['xrotation'])
 
