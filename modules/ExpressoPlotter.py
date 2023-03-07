@@ -41,10 +41,13 @@ class ExpressoPlotter():
         self._year=year
         self._plots=[]
         self.plot_live=False
+        self._yerr=True
         self._SSaveLocation='./'
         settingspath = Path('modules/plotsettings.yaml')
         with open(settingspath) as stream:
             self._ps=yaml.safe_load(stream)
+    def noyerr(self):
+        self._yerr=False
 
     def settings(self,file):
         path = Path(file)
@@ -162,9 +165,7 @@ class normalplot():
         if len(stack)!=0:
             hep.histplot([plotter.geths((st.to_hist())[:: skhist.rebin(rebin)],scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
         if len(nostack)!=0:
-            hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,
-                         color=nostackcolors)
-
+            hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,color=nostackcolors,yerr=plotter._yerr)
         #if 'normal' in allkey or '2D' in allkey:
         plt.tight_layout()
         plt.legend(loc='best',fontsize='x-small',ncol=2,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
