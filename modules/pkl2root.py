@@ -19,7 +19,7 @@ except:
     os.system(commandtodel)
     cprint(f'Root file with same name already present: {filename}, Overwritten now.','OKCYAN')
     fout = uproot3.create(filename)
-    exit()
+    #exit()
 
 print('Writing Histograms to root!')
 for histname in list(plotter._files[0]['coffehists'].keys()):
