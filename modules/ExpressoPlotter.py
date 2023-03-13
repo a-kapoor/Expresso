@@ -20,6 +20,7 @@ import numpy as np
 
 class ExpressoPlotter():
     def __init__(self,year):
+        print('Expresso Plotter Initialized!')
         import numpy as np
         import gzip
         import yaml
@@ -38,16 +39,21 @@ class ExpressoPlotter():
         from hist.intervals import ratio_uncertainty, clopper_pearson_interval, poisson_interval
         import numpy as np
         self._files=[]
+        self._LABELS=[]
         self._year=year
         self._plots=[]
         self.plot_live=False
+        self.printmeanvar=False
         self._yerr=True
         self._SSaveLocation='./'
         settingspath = Path('modules/plotsettings.yaml')
         with open(settingspath) as stream:
             self._ps=yaml.safe_load(stream)
     def noyerr(self):
-        self._yerr=False
+        self._yerr=None
+    def print_stat(self):
+        self.printmeanvar=True
+        
 
     def settings(self,file):
         path = Path(file)
@@ -96,12 +102,17 @@ class ExpressoPlotter():
             print("created folder : ", self._SSaveLocation)
 
 
-    def addfile(self,label,file,color,stack,scale):
-        self._files.append({'label':label,'file':file,'color':color,'stack':stack,
+    def addfile(self,label,thefile,color,stack,scale):
+        if label in self._LABELS:
+            print(f"Error: Two files can not have same name: {label}")
+            exit()
+        self._files.append({'label':label,'file':thefile,'color':color,'stack':stack,
                             'scale':scale,
-                            'coffehists':self.get_hist_from_pkl(self._loc+'/'+file),
+                            'coffehists':self.get_hist_from_pkl(self._loc+'/'+thefile),
                             #'h':self.get_hist_from_pkl(self._loc+'/'+file,tohist=True)
                            })
+        self._LABELS.append(label)
+        
     def gethist(self,filename,hi):
         file_a=None
         for plotterfile in self._files:
@@ -125,7 +136,10 @@ class ExpressoPlotter():
     
 
 class normalplot():
-    def __init__(self,plotter,filename,hi,axis,rebin=1):
+    def __init__(self,plotter,filename,hi,axis,rebin=1,colors='',pklfiles='',fontsize='xx-small',ncol=1,printplotnames=True):
+        print(f'Plotting {filename}')
+        his=hi
+        axes=axis
         self.plotter=plotter
         self._files=plotter._files
         SSaveLocation=plotter._SSaveLocation
@@ -145,29 +159,72 @@ class normalplot():
         stackscales=[]
         nostackscales=[]
 
+        his=his.split(',')
+        axes=axes.split(',')
+
+        #if not pklfiles: pklfiles=self._files
+        listcolors=colors
+
+        if pklfiles: LABELS=pklfiles.split(',')
+        else:
+            LABELS=[]
+            for myfile in self._files:
+                LABELS.append(myfile['label'])
+        
+        
         for file in self._files:
-            _ch=file['coffehists'][hi]
-            _color=file['color']
-            _stack=file['stack']
-            _scale=file['scale']
-            _label=file['label']
-            project=_ch.project(axis)
-            if(_stack=='stack'):
-                stack.append(project)
-                stacklabels.append(_label)
-                stackcolors.append(_color)
-                stackscales.append(_scale)
-            if(_stack=='nostack'):
-                nostack.append(project)
-                nostacklabels.append(_label)
-                nostackcolors.append(_color)
-                nostackscales.append(_scale)
-        if len(stack)!=0:
-            hep.histplot([plotter.geths((st.to_hist())[:: skhist.rebin(rebin)],scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
-        if len(nostack)!=0:
-            hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,color=nostackcolors,yerr=plotter._yerr)
+            if file['label'] not in LABELS:
+                continue
+            if not colors:
+                listcolors= [file['color']]*len(his)
+            else:
+                listcolors=colors.split(',')
+            for hi,axis,color in zip(his,axes,listcolors):
+                _ch=file['coffehists'][hi]
+                _color=color
+                _stack=file['stack']
+                _scale=file['scale']
+                if printplotnames:
+                    _label=file['label']+ f'({hi})'
+                else:
+                    _label=file['label']
+                if plotter.printmeanvar:
+                    meanvar=getmeanvar(hi=_ch)
+                    mean,var,num=meanvar['mean'],meanvar['var'],meanvar['num']
+                    _label = _label + f'( mean = {mean}, var = {var}, entries= {num} )'
+                project=_ch.project(axis)
+                if(_stack=='stack'):
+                    stack.append(project)
+                    stacklabels.append(_label)
+                    stackcolors.append(_color)
+                    stackscales.append(_scale)
+                if(_stack=='nostack'):
+                    nostack.append(project)
+                    nostacklabels.append(_label)
+                    nostackcolors.append(_color)
+                    nostackscales.append(_scale)
+            if len(stack)!=0:
+                hep.histplot([plotter.geths((st.to_hist())[:: skhist.rebin(rebin)],scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+            
+            if len(nostack)!=0:
+                for nst,scaleit,labelit,colorit in zip(nostack,nostackscales,nostacklabels,nostackcolors):
+                    here_yerr=plotter._yerr
+                    if scaleit==-1: print("error bars not supported when normalizing"); here_yerr=False
+                    hep.histplot(plotter.geths((nst.to_hist())[::skhist.rebin(rebin)],scaleit),
+                                 lw=1,stack=False,histtype='step',label=labelit,color=colorit,yerr=here_yerr)
+                #hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,color=nostackcolors,yerr=plotter._yerr)
         #if 'normal' in allkey or '2D' in allkey:
         plt.tight_layout()
-        plt.legend(loc='best',fontsize='x-small',ncol=2,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
+        plt.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
         plt.savefig(f'{SSaveLocation}/normal_{filename}.pdf', dpi=200)
         plt.close()
+    def getfiles(self):
+        return self._files
+    
+def getmeanvar(hi):
+    n, bins = hi.integrate('process').to_hist().to_numpy()
+    mids=0.5*(bins[1:] + bins[:-1])
+    num=np.sum(n)
+    mean=np.average(mids, weights=n).round(2)
+    var=np.average((mids - mean)**2, weights=n).round(2)
+    return {'mean':mean,'var':var,'num':num}
