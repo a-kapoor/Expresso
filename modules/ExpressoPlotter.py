@@ -181,7 +181,6 @@ class normalplot():
         
         
         for file in self._files:
-            print(file['label'])
             if file['label'] not in LABELS:
                 continue
             if not colors:
@@ -194,7 +193,6 @@ class normalplot():
                 _stack=file['stack']
                 _scale=file['scale']
                 _isdata=file['isdata']
-                print(f'{hi} is {_isdata}')
                 if printplotnames:
                     _label=file['label']+ f'({hi})'
                 else:
@@ -221,13 +219,20 @@ class normalplot():
                     nostackcolors.append(_color)
                     nostackscales.append(_scale)
         if len(stack)!=0:
-            hep.histplot([plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,
+            scaledstacks=[plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)]
+            hep.histplot(scaledstacks,lw=1,
                          stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+            fullstack=sum(scaledstacks)
+            plt.fill_between(fullstack.axes[0].centers,
+                             fullstack.values()-np.sqrt(fullstack.variances()),
+                             fullstack.values()+np.sqrt(fullstack.variances()),
+                             hatch='', zorder=2, fc='grey',step='mid',alpha=0.6,label='stat_unc')
+            
             #stackerrors_=
             #values=[plotter.geths((st.to_hist())[:: skhist.rebin(rebin)]).values 
             
         if len(nostack)!=0:
-            print(len(nostack))
+            
             for nst,scaleit,labelit,colorit,isdatait in zip(nostack,nostackscales,nostacklabels,
                                                             nostackcolors,nostack_isdatalist):
                 here_yerr=plotter._yerr
@@ -239,11 +244,12 @@ class normalplot():
                         plt.fill_between(here_h.axes[0].centers,
                                          here_h.values()-np.sqrt(here_h.variances()),
                                          here_h.values()+np.sqrt(here_h.variances()),
-                                         hatch='', zorder=2, fc='grey',step='mid',alpha=0.4)
+                                         hatch='', zorder=2, fc='grey',step='mid',alpha=0.6)
                 else:
                     if scaleit!=1:
-                        print("Data can not be scaled from original")
-                    hep.histplot(nst,
+                        print("Warning: You are scaling data, I hope you know what you are doing")
+                    here_h=plotter.geths(nst,scaleit)
+                    hep.histplot(here_h,
                                  lw=2,stack=False,histtype='errorbar',label=labelit,color=colorit)
                         
                     
