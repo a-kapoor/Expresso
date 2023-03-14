@@ -44,11 +44,14 @@ class ExpressoPlotter():
         self._plots=[]
         self.plot_live=False
         self.printmeanvar=False
+        self.isnotebook=False
         self._yerr=True
         self._SSaveLocation='./'
         settingspath = Path('modules/plotsettings.yaml')
         with open(settingspath) as stream:
             self._ps=yaml.safe_load(stream)
+    def notebook(self):
+        self.isnotebook=True
     def noyerr(self):
         self._yerr=None
     def print_stat(self):
@@ -71,7 +74,7 @@ class ExpressoPlotter():
             return h
     def geths(self,h,scale=-1):
         if scale==-1:
-            return h*(1/sum(list(h.counts())))
+            return h*(1/sum(h.counts()))
         else:
             return h*scale
 
@@ -158,6 +161,9 @@ class normalplot():
         stackcolors=[]
         stackscales=[]
         nostackscales=[]
+        
+        stackerrors=[]
+        nostackerrors=[]
 
         his=his.split(',')
         axes=axes.split(',')
@@ -192,32 +198,54 @@ class normalplot():
                     meanvar=getmeanvar(hi=_ch)
                     mean,var,num=meanvar['mean'],meanvar['var'],meanvar['num']
                     _label = _label + f'( mean = {mean}, var = {var}, entries= {num} )'
-                project=_ch.project(axis)
+                project=_ch.project(axis).to_hist()[::skhist.rebin(rebin)]
                 if(_stack=='stack'):
+                    with np.errstate(divide='ignore',invalid='ignore'):
+                        stackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
                     stack.append(project)
                     stacklabels.append(_label)
                     stackcolors.append(_color)
                     stackscales.append(_scale)
                 if(_stack=='nostack'):
+                    with np.errstate(divide='ignore',invalid='ignore'):
+                        nostackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
                     nostack.append(project)
                     nostacklabels.append(_label)
                     nostackcolors.append(_color)
                     nostackscales.append(_scale)
             if len(stack)!=0:
-                hep.histplot([plotter.geths((st.to_hist())[:: skhist.rebin(rebin)],scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+                hep.histplot([plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,
+                             stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+                #stackerrors_=
+                #values=[plotter.geths((st.to_hist())[:: skhist.rebin(rebin)]).values 
             
             if len(nostack)!=0:
                 for nst,scaleit,labelit,colorit in zip(nostack,nostackscales,nostacklabels,nostackcolors):
                     here_yerr=plotter._yerr
-                    if scaleit==-1: print("error bars not supported when normalizing"); here_yerr=False
-                    hep.histplot(plotter.geths((nst.to_hist())[::skhist.rebin(rebin)],scaleit),
-                                 lw=1,stack=False,histtype='step',label=labelit,color=colorit,yerr=here_yerr)
+                    here_h=plotter.geths(nst,scaleit)
+                    hep.histplot(here_h,
+                                 lw=1,stack=False,histtype='step',label=labelit,color=colorit,yerr=False)
+                    if plotter._yerr:
+                        plt.fill_between(here_h.axes[0].centers,
+                                         here_h.values()-np.sqrt(here_h.variances()),
+                                         here_h.values()+np.sqrt(here_h.variances()),
+                                         hatch='', zorder=2, fc='grey',step='mid',alpha=0.4)    
+                    
+                    #,yerr=here_yerr)
                 #hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,color=nostackcolors,yerr=plotter._yerr)
         #if 'normal' in allkey or '2D' in allkey:
         plt.tight_layout()
         plt.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
         plt.savefig(f'{SSaveLocation}/normal_{filename}.pdf', dpi=200)
-        plt.close()
+        if plotter.isnotebook:
+            plt.show()
+            self.stackerrors=stackerrors
+            self.hists=stack
+            self.scaledhists=[plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)]
+        else:
+            plt.close()
+    def getstack(self):
+        return self.hists,self.scaledhists,self.stackerrors
     def getfiles(self):
         return self._files
     
