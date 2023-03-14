@@ -105,12 +105,12 @@ class ExpressoPlotter():
             print("created folder : ", self._SSaveLocation)
 
 
-    def addfile(self,label,thefile,color,stack,scale):
+    def addfile(self,label,thefile,color,stack,scale,isdata=False):
         if label in self._LABELS:
             print(f"Error: Two files can not have same name: {label}")
             exit()
         self._files.append({'label':label,'file':thefile,'color':color,'stack':stack,
-                            'scale':scale,
+                            'scale':scale,'isdata':isdata,
                             'coffehists':self.get_hist_from_pkl(self._loc+'/'+thefile),
                             #'h':self.get_hist_from_pkl(self._loc+'/'+file,tohist=True)
                            })
@@ -164,10 +164,12 @@ class normalplot():
         
         stackerrors=[]
         nostackerrors=[]
+        stack_isdatalist=[]
+        nostack_isdatalist=[]
 
         his=his.split(',')
         axes=axes.split(',')
-
+        
         #if not pklfiles: pklfiles=self._files
         listcolors=colors
 
@@ -179,6 +181,7 @@ class normalplot():
         
         
         for file in self._files:
+            print(file['label'])
             if file['label'] not in LABELS:
                 continue
             if not colors:
@@ -190,6 +193,8 @@ class normalplot():
                 _color=color
                 _stack=file['stack']
                 _scale=file['scale']
+                _isdata=file['isdata']
+                print(f'{hi} is {_isdata}')
                 if printplotnames:
                     _label=file['label']+ f'({hi})'
                 else:
@@ -202,6 +207,7 @@ class normalplot():
                 if(_stack=='stack'):
                     with np.errstate(divide='ignore',invalid='ignore'):
                         stackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
+                    stack_isdatalist.append(_isdata)
                     stack.append(project)
                     stacklabels.append(_label)
                     stackcolors.append(_color)
@@ -209,19 +215,23 @@ class normalplot():
                 if(_stack=='nostack'):
                     with np.errstate(divide='ignore',invalid='ignore'):
                         nostackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
+                    nostack_isdatalist.append(_isdata)
                     nostack.append(project)
                     nostacklabels.append(_label)
                     nostackcolors.append(_color)
                     nostackscales.append(_scale)
-            if len(stack)!=0:
-                hep.histplot([plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,
-                             stack=True,histtype='fill',label=stacklabels, color=stackcolors)
-                #stackerrors_=
-                #values=[plotter.geths((st.to_hist())[:: skhist.rebin(rebin)]).values 
+        if len(stack)!=0:
+            hep.histplot([plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)],lw=1,
+                         stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+            #stackerrors_=
+            #values=[plotter.geths((st.to_hist())[:: skhist.rebin(rebin)]).values 
             
-            if len(nostack)!=0:
-                for nst,scaleit,labelit,colorit in zip(nostack,nostackscales,nostacklabels,nostackcolors):
-                    here_yerr=plotter._yerr
+        if len(nostack)!=0:
+            print(len(nostack))
+            for nst,scaleit,labelit,colorit,isdatait in zip(nostack,nostackscales,nostacklabels,
+                                                            nostackcolors,nostack_isdatalist):
+                here_yerr=plotter._yerr
+                if not isdatait:
                     here_h=plotter.geths(nst,scaleit)
                     hep.histplot(here_h,
                                  lw=1,stack=False,histtype='step',label=labelit,color=colorit,yerr=False)
@@ -229,7 +239,13 @@ class normalplot():
                         plt.fill_between(here_h.axes[0].centers,
                                          here_h.values()-np.sqrt(here_h.variances()),
                                          here_h.values()+np.sqrt(here_h.variances()),
-                                         hatch='', zorder=2, fc='grey',step='mid',alpha=0.4)    
+                                         hatch='', zorder=2, fc='grey',step='mid',alpha=0.4)
+                else:
+                    if scaleit!=1:
+                        print("Data can not be scaled from original")
+                    hep.histplot(nst,
+                                 lw=2,stack=False,histtype='errorbar',label=labelit,color=colorit)
+                        
                     
                     #,yerr=here_yerr)
                 #hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,color=nostackcolors,yerr=plotter._yerr)
