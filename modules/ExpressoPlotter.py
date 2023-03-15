@@ -46,6 +46,7 @@ class ExpressoPlotter():
         self.printmeanvar=False
         self.isnotebook=False
         self._yerr=True
+        self.plotratio=False
         self._SSaveLocation='./'
         settingspath = Path('modules/plotsettings.yaml')
         with open(settingspath) as stream:
@@ -56,6 +57,8 @@ class ExpressoPlotter():
         self._yerr=None
     def print_stat(self):
         self.printmeanvar=True
+    def plot_ratio(self):
+        self.plotratio=True
         
 
     def settings(self,file):
@@ -139,8 +142,9 @@ class ExpressoPlotter():
     
 
 class normalplot():
-    def __init__(self,plotter,filename,hi,axis,rebin=1,colors='',pklfiles='',fontsize='xx-small',ncol=1,printplotnames=True):
+    def __init__(self,plotter,filename,hi,axis,rebin=1,colors='',pklfiles='',fontsize='xx-small',ncol=1,printplotnames=True,xlabel=None):
         print(f'Plotting {filename}')
+        self.data=''
         his=hi
         axes=axis
         self.plotter=plotter
@@ -151,8 +155,15 @@ class normalplot():
 
         if plotter._ps['hepstyle']=='CMS':
             hep.style.use("CMS")
-            hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year)
+            
+        fig, ax = plt.subplots(2,sharex=True,gridspec_kw={'height_ratios': [5, 1]},constrained_layout=True)
+        ax1=ax[0]
+        ax2=ax[1]
 
+        if plotter._ps['hepstyle']=='CMS':
+            hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year,ax=ax1)
+
+        
         nostack=[]
         stack=[]
         nostacklabels=[]
@@ -220,12 +231,13 @@ class normalplot():
                     nostackscales.append(_scale)
         if len(stack)!=0:
             scaledstacks=[plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)]
-            hep.histplot(scaledstacks,lw=1,
+            hep.histplot(scaledstacks,lw=1,ax=ax1,
                          stack=True,histtype='fill',label=stacklabels, color=stackcolors)
-            fullstack=sum(scaledstacks)
-            plt.fill_between(fullstack.axes[0].centers,
-                             fullstack.values()-np.sqrt(fullstack.variances()),
-                             fullstack.values()+np.sqrt(fullstack.variances()),
+            self.fullstack=sum(scaledstacks)
+            
+            ax1.fill_between(self.fullstack.axes[0].centers,#,ax=ax1,
+                             self.fullstack.values()-np.sqrt(self.fullstack.variances()),
+                             self.fullstack.values()+np.sqrt(self.fullstack.variances()),
                              hatch='', zorder=2, fc='grey',step='mid',alpha=0.6,label='stat_unc')
             
             #stackerrors_=
@@ -238,26 +250,42 @@ class normalplot():
                 here_yerr=plotter._yerr
                 if not isdatait:
                     here_h=plotter.geths(nst,scaleit)
-                    hep.histplot(here_h,
+                    hep.histplot(here_h,ax=ax1,
                                  lw=1,stack=False,histtype='step',label=labelit,color=colorit,yerr=False)
+                    
                     if plotter._yerr:
-                        plt.fill_between(here_h.axes[0].centers,
+                        ax1.fill_between(here_h.axes[0].centers,
                                          here_h.values()-np.sqrt(here_h.variances()),
                                          here_h.values()+np.sqrt(here_h.variances()),
                                          hatch='', zorder=2, fc='grey',step='mid',alpha=0.6)
+                    
                 else:
                     if scaleit!=1:
                         print("Warning: You are scaling data, I hope you know what you are doing")
-                    here_h=plotter.geths(nst,scaleit)
-                    hep.histplot(here_h,
+                    self.data=plotter.geths(nst,scaleit)
+                    hep.histplot(self.data,ax=ax1,
                                  lw=2,stack=False,histtype='errorbar',label=labelit,color=colorit)
-                        
+
                     
-                    #,yerr=here_yerr)
-                #hep.histplot([plotter.geths((nst.to_hist())[:: skhist.rebin(rebin)],scaleit) for nst,scaleit in zip(nostack,nostackscales)],lw=1,stack=False,histtype='step',label=nostacklabels,color=nostackcolors,yerr=plotter._yerr)
-        #if 'normal' in allkey or '2D' in allkey:
-        plt.tight_layout()
-        plt.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
+            if plotter.plotratio and self.data:
+                xlbl = ax1.get_xaxis().get_label()
+                #print(xlbl.get_text())
+                #print(xlbl)
+                ratio = (self.data.values()/self.fullstack.values())
+                err_down, err_up  = ratio_uncertainty(self.data.values(), self.fullstack.values())##Needs to be checked
+                ax2.errorbar(self.data.axes[0].centers,ratio,yerr=(err_down, err_up),fmt='k.',markersize=2)
+                if not xlabel:xlabel=xlbl.get_text()
+                print(f'xlabel = {xlabel}')
+                ax2.set_xlabel(xlabel)
+                ax1.set_xlabel(None)
+            else:
+                ax2.remove()
+        ax1.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
+        ax2.set_ylim(0,2)
+        if not plotter.plotratio and not self.data:
+            if xlabel:
+                ax1.set_xlabel(xlabel)
+        #plt.tight_layout()
         plt.savefig(f'{SSaveLocation}/normal_{filename}.pdf', dpi=200)
         if plotter.isnotebook:
             plt.show()
