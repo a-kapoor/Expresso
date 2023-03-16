@@ -156,9 +156,13 @@ class normalplot():
         if plotter._ps['hepstyle']=='CMS':
             hep.style.use("CMS")
             
-        fig, ax = plt.subplots(2,sharex=True,gridspec_kw={'height_ratios': [5, 1]},constrained_layout=True)
-        ax1=ax[0]
-        ax2=ax[1]
+        if plotter.plotratio:
+            fig, ax = plt.subplots(2,sharex=True,gridspec_kw={'height_ratios': [5, 1]},constrained_layout=True)
+            ax1=ax[0]
+            ax2=ax[1]
+        else:
+            fig, ax1 = plt.subplots(1,constrained_layout=True)
+            ax2=plt.gca()
 
         if plotter._ps['hepstyle']=='CMS':
             hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year,ax=ax1)
@@ -234,11 +238,13 @@ class normalplot():
             hep.histplot(scaledstacks,lw=1,ax=ax1,
                          stack=True,histtype='fill',label=stacklabels, color=stackcolors)
             self.fullstack=sum(scaledstacks)
-            
-            ax1.fill_between(self.fullstack.axes[0].centers,#,ax=ax1,
-                             self.fullstack.values()-np.sqrt(self.fullstack.variances()),
-                             self.fullstack.values()+np.sqrt(self.fullstack.variances()),
-                             hatch='', zorder=2, fc='grey',step='mid',alpha=0.6,label='stat_unc')
+            try:
+                ax1.fill_between(self.fullstack.axes[0].centers,#,ax=ax1,
+                                 self.fullstack.values()-np.sqrt(self.fullstack.variances()),
+                                 self.fullstack.values()+np.sqrt(self.fullstack.variances()),
+                                 hatch='', zorder=2, fc='grey',step='mid',alpha=0.6,label='stat_unc')
+            except:
+                print("Not plotting errors")
             
             #stackerrors_=
             #values=[plotter.geths((st.to_hist())[:: skhist.rebin(rebin)]).values 
@@ -247,7 +253,6 @@ class normalplot():
             
             for nst,scaleit,labelit,colorit,isdatait in zip(nostack,nostackscales,nostacklabels,
                                                             nostackcolors,nostack_isdatalist):
-                here_yerr=plotter._yerr
                 if not isdatait:
                     here_h=plotter.geths(nst,scaleit)
                     hep.histplot(here_h,ax=ax1,
@@ -273,15 +278,13 @@ class normalplot():
                 #print(xlbl)
                 ratio = (self.data.values()/self.fullstack.values())
                 err_down, err_up  = ratio_uncertainty(self.data.values(), self.fullstack.values())##Needs to be checked
-                ax2.errorbar(self.data.axes[0].centers,ratio,yerr=(err_down, err_up),fmt='k.',markersize=2)
+                ax2.errorbar(self.data.axes[0].centers,ratio,yerr=(err_down, err_up),fmt='k.',markersize=8)
                 if not xlabel:xlabel=xlbl.get_text()
-                print(f'xlabel = {xlabel}')
                 ax2.set_xlabel(xlabel)
                 ax1.set_xlabel(None)
-            else:
-                ax2.remove()
+                ax2.set_ylim(0,2)
+                
         ax1.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
-        ax2.set_ylim(0,2)
         if not plotter.plotratio and not self.data:
             if xlabel:
                 ax1.set_xlabel(xlabel)

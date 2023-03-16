@@ -181,7 +181,7 @@ class IHEPProcessor(processor.ProcessorABC):
         ######################################
         pars={}
         ######################################
-        pars['dataset'],pars['isData'],pars['histAxisName'],pars['year'],pars['xsec'],pars['sow']=ET.getInfo(events,self._samples)
+        pars['dataset'],pars['isData'],pars['histAxisName'],pars['year'],pars['xsec'],pars['sow'],pars['nEvents']=ET.getInfo(events,self._samples)
         pars['analysispoint']=self._analysispoint
         pars['passoptions']=self._passoptions
         #------- preprocess (mostly create objects and special event variables)
