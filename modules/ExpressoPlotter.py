@@ -242,7 +242,7 @@ class normalplot():
                 ax1.fill_between(self.fullstack.axes[0].centers,#,ax=ax1,
                                  self.fullstack.values()-np.sqrt(self.fullstack.variances()),
                                  self.fullstack.values()+np.sqrt(self.fullstack.variances()),
-                                 hatch='', zorder=2, fc='grey',step='mid',alpha=0.6,label='stat_unc')
+                                 hatch='/////', zorder=2, color= 'none',edgecolor='k',step='mid',alpha=0.6,label='stat_unc')
             except:
                 print("Not plotting errors")
             
@@ -283,6 +283,7 @@ class normalplot():
                 ax2.set_xlabel(xlabel)
                 ax1.set_xlabel(None)
                 ax2.set_ylim(0,2)
+                ax2.axhline(y=1, color='black', linestyle='--')
                 
         ax1.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
         if not plotter.plotratio and not self.data:
