@@ -10,7 +10,7 @@ def preselection(pars, events, selections):
     #     selections.add("is_good_lumi",lumi_mask)
     selections.add('passed HLT_DoubleIsoMu17_eta2p1', events.HLT.DoubleIsoMu17_eta2p1>0)
     selections.add("2 muons", (ak.num(events.recoMu) == 2))
-    selections.add("2 photons", (ak.num(events.recoPho) == 1))
+    selections.add("1 photon", (ak.num(events.recoPho) == 1))
 
     #-----------Add your pre selection here----------------------#
     return events, selections

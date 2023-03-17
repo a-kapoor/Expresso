@@ -10,7 +10,7 @@ plotter=ExpressoPlotter("2016")
 plotter.histolocation('./')
 plotter.savelocation('./Output/plots/')
 plotter.settings('modules/plotsettings.yaml')
-plotter.print_stat()
+#plotter.print_stat()
 #plotter.noyerr()
 plotter.plot_ratio()
 plotter.addfile('Data',DM,'black','nostack',1,isdata=True) ## -1 normalizes to 1
@@ -18,10 +18,11 @@ plotter.addfile('DYJetsToLL',DY,'red','stack',lumi) ## -1 normalizes to 1
 plotter.addfile('ZGToLLG',ZG,'blue','stack',lumi) ## -1 normalizes to 1
 
 
-p=normalplot(plotter,filename="Mmmg",hi='Mmmg',axis='Mmmg',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=10)
-p=normalplot(plotter,filename="Mmm",hi='Mmm',axis='Mmm',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=10)
-p=normalplot(plotter,filename="PhotonpT",hi='PhotonpT',axis='PhotonpT',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=10)
-p=normalplot(plotter,filename="LeadingMuonpT",hi='LeadingMuonpT',axis='LeadingMuonpT',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=10)
+p=normalplot(plotter,filename="Mmmg",hi='Mmmg',axis='Mmmg',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=1)
+p=normalplot(plotter,filename="Mmm",hi='Mmm',axis='Mmm',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=1)
+p=normalplot(plotter,filename="Mmm_zoom",hi='Mmm_zoom',axis='Mmm',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=1)
+p=normalplot(plotter,filename="PhotonpT",hi='PhotonpT',axis='PhotonpT',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=2)
+p=normalplot(plotter,filename="LeadingMuonpT",hi='LeadingMuonpT',axis='LeadingMuonpT',pklfiles='DYJetsToLL,ZGToLLG,Data',rebin=2)
 #p=normalplot(plotter,filename="cutflow_individual",hi='cutflow_individual',axis='x',pklfiles='DYJetsToLL,ZGToLLG,Data')
 #p=normalplot(plotter,filename="cutflow",hi='cutflow',axis='x',pklfiles='DYJetsToLL,ZGToLLG,Data')
 #p=normalplot(plotter,filename="sumw",hi='sumw',axis='sumw',pklfiles='DYJetsToLL,ZGToLLG,Data')

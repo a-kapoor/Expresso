@@ -11,11 +11,12 @@ from modules.hcoll import binning
 histograms = {
     ############################# KEEP THIS BLOCK ##################
 
-    'Mmmg':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmmg", "Mmmg", 200,0,200)),
-    'Mmm':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmm", "Mmm", 200,0,200)),
-
-    'PhotonpT':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("PhotonpT", "PhotonpT", 200,0,200)),
-    'LeadingMuonpT':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("LeadingMuonpT", "LeadingMuonpT", 200,0,200)),
+    'Mmmg':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmmg", "Mmmg", 20,50,250)),
+    'Mmm':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmm", "Mmm", 20,50,200)),
+    'Mmm_zoom':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmm", "Mmm", 20,50,120)),
+    'MET':hist.Hist('Events',hist.Cat('process', 'process'),hist.Bin('MET', '$MET$', 100,0,200)),
+    'PhotonpT':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("PhotonpT", "PhotonpT", 150,0,150)),
+    'LeadingMuonpT':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("LeadingMuonpT", "LeadingMuonpT", 150,0,150)),
 
     ############################# KEEP THIS BLOCK ##################
 }
@@ -57,6 +58,7 @@ def myanalysis(pars, logger, h, ev, doweight=True):
     
     hists.fill('Mmmg',ev.weight_norm,(ev.event>0), ev, Mmmg="M_uug")
     hists.fill('Mmm',ev.weight_norm,(ev.event>0), ev, Mmm="M_uu")
+    hists.fill('Mmm_zoom',ev.weight_norm,(ev.event>0), ev, Mmm="M_uu")
     hists.fill('PhotonpT',ev.weight_norm,(ev.event>0), ev, PhotonpT="PhotonpT")
     hists.fill('LeadingMuonpT',ev.weight_norm,(ev.event>0), ev, LeadingMuonpT="LeadingMuonpT")
     
