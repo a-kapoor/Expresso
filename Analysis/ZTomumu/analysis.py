@@ -12,7 +12,7 @@ histograms = {
     ############################# KEEP THIS BLOCK ##################
 
     'Mmmg':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmmg", "Mmmg", 20,50,250)),
-    'Mmm':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmm", "Mmm", 20,50,200)),
+    'Mmm':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmm", "Mmm", 75,50,200)),
     'Mmm_zoom':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("Mmm", "Mmm", 20,50,120)),
     'MET':hist.Hist('Events',hist.Cat('process', 'process'),hist.Bin('MET', '$MET$', 100,0,200)),
     'PhotonpT':hist.Hist("Events",hist.Cat('process', 'process'),hist.Bin("PhotonpT", "PhotonpT", 150,0,150)),
@@ -29,6 +29,7 @@ def myanalysis(pars, logger, h, ev, doweight=True):
     dataset,isData,histAxisName,year=pars['dataset'],pars['isData'],pars['histAxisName'],pars['year']
     xsec,sow,pass_options,analysis_point=pars['xsec'],pars['sow'],pars['passoptions'],pars['analysispoint']
     nEvents=pars['nEvents']
+    
 
     from modules.hcoll import hcoll,binning
     hists = hcoll(h, isData, xsec, sow, doweight, process=histAxisName)
@@ -41,28 +42,34 @@ def myanalysis(pars, logger, h, ev, doweight=True):
     if not isData:
          if pass_options=='Xsecweight':
             genw = ev["genWeight"]
-            ev["weight_norm"] = (xsec / sow)* genw
-            #ev["weight_norm"] =1
+            muon_sf=ev.Muon[:,0].sf_nom*ev.Muon[:,1].sf_nom
+            ev["weight_norm"] = (xsec / sow)* genw * muon_sf
          else:   
             ev["weight_norm"]=1
     else:
         ev["weight_norm"]=1
+    #-------------------------------------------------------------------------------------------------------#### Di Muon events
             
     ev['M_uu']=(ev.recoMu[:,0]+ev.recoMu[:,1]).mass
-    #ev['M_uug']=(ev.recoMu[:,0]+ev.recoMu[:,1]+ev.recoPho[:,0]).mass
-
-    #ev['PhotonpT']=ev.recoPho[:,0].pt
     ev['LeadingMuonpT']=ev.recoMu[:,0].pt
 
-    ev=ev[ev.M_uu>55]
+    ev_is_m55=(ev.M_uu>55)
+    ev=ev[ev_is_m55]
     
-    #hists.fill('Mmmg',ev.weight_norm,(ev.event>0), ev, Mmmg="M_uug")
     hists.fill('Mmm',ev.weight_norm,(ev.event>0), ev, Mmm="M_uu")
-    #hists.fill('Mmm_zoom',ev.weight_norm,(ev.event>0), ev, Mmm="M_uu")
-    #hists.fill('PhotonpT',ev.weight_norm,(ev.event>0), ev, PhotonpT="PhotonpT")
+    hists.fill('Mmm_zoom',ev.weight_norm,(ev.event>0), ev, Mmm="M_uu")
     hists.fill('LeadingMuonpT',ev.weight_norm,(ev.event>0), ev, LeadingMuonpT="LeadingMuonpT")
+    #-------------------------------------------------------------------------------------------------------#### MuMu-Gamma events
     
+    ev_has_1pho=((ak.num(ev.recoPho)==1))
+    ev=ev[ev_has_1pho]
 
+    ev['M_uug']=(ev.recoMu[:,0]+ev.recoMu[:,1]+ev.recoPho[:,0]).mass
+
+    ev['PhotonpT']=ev.recoPho[:,0].pt
+    hists.fill('PhotonpT',ev.weight_norm,(ev.event>0), ev, PhotonpT="PhotonpT")
+    hists.fill('Mmmg',ev.weight_norm,(ev.event>0), ev, Mmmg="M_uug")
+    #-------------------------------------------------------------------------------------------------------
     ############################# KEEP THIS BLOCK ##################
     ET.autolog(f"{len(ev)} Events at the end of your analysis", logger, 'i')
     return hists.get()
