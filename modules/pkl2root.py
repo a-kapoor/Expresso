@@ -24,7 +24,11 @@ except:
 print('Writing Histograms to root!')
 for histname in list(plotter._files[0]['coffehists'].keys()):
     h=plotter._files[0]['coffehists'][histname]
-    #print(h.fields)
+
+    if len(h.values())==0:
+        print(f'{histname} is an empty histogram,so did not save it.')
+        continue
+    
     if 'process' in h.fields:
         h=h.integrate('process')
         #print(histname)
