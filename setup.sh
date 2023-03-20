@@ -46,5 +46,5 @@ testplot () {
     }
 
 lumical () {
-    rm -rf Analysis/LumiCal/lumi.txt; ./expresso.py --NumberOfTasks 1000000 --Analysis Analysis/LumiCal/ --PassOptions $2 --Sample $1 --ChunkSize 1000000;awk '{ sum += $1 } END { print sum }' Analysis/LumiCal/lumi.txt;rm -rf Analysis/LumiCal/lumi.txt
+    rm -rf Analysis/LumiCal/lumi.txt; ./expresso.py --NumberOfTasks 1000000 --Analysis Analysis/LumiCal/ --PassOptions $2 --Sample $1 --ChunkSize 1000000;awk '{ sum += $1 } END { printf "Luminosity is:  %d pb⁻¹\n", sum}' Analysis/LumiCal/lumi.txt;rm -rf Analysis/LumiCal/lumi.txt
     }
