@@ -1,4 +1,5 @@
 from asyncio import events
+from modules.corrections import SFevaluator, GetBTagSF, ApplyJetCorrections, GetBtagEff, AttachMuonSF, AttachElectronSF, AttachPerLeptonFR, GetPUSF, ApplyRochesterCorrections, ApplyJetSystematics, AttachPSWeights, AttachPdfWeights, AttachScaleWeights, GetTriggerSF
 
 
 def preprocess(pars, events, AttachSF=False):
@@ -31,10 +32,13 @@ def preprocess(pars, events, AttachSF=False):
         nTauEv = ak.num(events["GenTaus"])
         print(f"SJ!!! inside preprocessor.py, ")
 
+
+    events["Muon","pt"]=ApplyRochesterCorrections(year, events["Muon"], isData, var='nominal')
+    AttachMuonSF(events,"Muon",year=year)
     events["recoMu"]=events.Muon[(events.Muon.mediumId==True) &
-                                 (events.Muon.pt > 20) &
-                                 (abs(events.Muon.eta)<2.1) &
-                                 (events.Muon.pfIsoId>=2)]
+                                 (events.Muon.pt > 30) &
+                                 (abs(events.Muon.eta)<2.4) &
+                                 (events.Muon.pfIsoId>=3)]
     events["Photon","cutBasedBitmap"]=events.Photon.vidNestedWPBitmap # adding because my nano is v9 and the name is vidNestedWPBitmap
     events["recoPho"]=events.Photon[(events.Photon.cutBasedBitmap >=2) & (events.Photon.pt > 10) & (abs(events.Photon.eta)<2.5)]
 
