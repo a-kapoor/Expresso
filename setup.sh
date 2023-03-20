@@ -44,3 +44,7 @@ testanatight () {
 testplot () {
     python plot+.py --PlotterScript Analysis/barebones/allplots.yaml --HistoFolder Output/Analysis/barebones/output/analysis/ --SaveLocation Output/Analysis/barebones/output/analysis/
     }
+
+lumical () {
+    rm -rf Analysis/LumiCal/lumi.txt; ./expresso.py --NumberOfTasks 1000000 --Analysis Analysis/LumiCal/ --PassOptions mask --Sample $1 --ChunkSize 1000000;awk '{ sum += $1 } END { print sum }' Analysis/LumiCal/lumi.txt;rm -rf Analysis/LumiCal/lumi.txt
+    }
