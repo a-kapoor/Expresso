@@ -178,13 +178,7 @@ if __name__=='__main__':
         if args.FullPlots:
             try:
                 cprint(f'########## Full Plotting turned on #############',"HEADER")
-            
-                Histolist=args.FullPlots
-                Histofolder=JobFolder
-                Savefolder=args.OutputFolder+'/Analysis/'+args.Analysis+'/output/analysis/'
-
-                print(f'Histograms picked from {Histofolder}')
-                os.system('python plot+.py --PlotterScript '+Histolist+' --HistoFolder '+Histofolder+'/ --SaveLocation '+Savefolder)
+                os.system('python /Analysis/'+args.Analysis+'/plot.py')
             except Exception as e:
                 cprint(f'########## Full Plotting did not work! #############',"HEADER")
                 print(e)

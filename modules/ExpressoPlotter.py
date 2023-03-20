@@ -68,19 +68,19 @@ class ExpressoPlotter():
 
     def get_hist_from_pkl(self, path_to_pkl,allow_empty=True,tohist=False):
         h = pickle.load( gzip.open(path_to_pkl) )
+        #print(h['Mmm'].values())
+
         if not allow_empty:
             h = {k:v for k,v in h.items() if v.values() != {}}
         if tohist:
-            print(h)
             return h.to_hist()
         else:
             return h
+        
     def geths(self,h,scale=-1):
-        if scale==-1:
-            return h*(1/sum(h.counts()))
-        else:
-            return h*scale
-
+        # Return scaled histogram
+        return h*(1/sum(h.counts())) if scale==-1 else h*scale
+    
     def dictprint(self, di):
         for key, value in di.items():
             print(key, ' : ', value)
@@ -101,14 +101,17 @@ class ExpressoPlotter():
     def histolocation(self,loc):
         self._loc=loc
     def savelocation(self,loc):
+        # Set the save location to the given location
         self._SSaveLocation=loc
+        # Check if the save location exists
         isExist = os.path.exists(self._SSaveLocation)
+        # If the save location does not exist, create it
         if not isExist:
             os.makedirs(self._SSaveLocation)
             print("created folder : ", self._SSaveLocation)
 
 
-    def addfile(self,label,thefile,color,stack,scale,isdata=False):
+    def addfile(self,label,thefile,color,stack=False,scale=1,isdata=False):
         if label in self._LABELS:
             print(f"Error: Two files can not have same name: {label}")
             exit()
@@ -129,114 +132,41 @@ class ExpressoPlotter():
         else:
             print("wrong filename or hi or axis")
             return 0
-    def getcoffeahist(self,filename,hi):
-        file_a=None
-        for plotterfile in self._files:
-            if plotterfile['label']==filename:
-                file_a=plotterfile['coffehists'][hi]
-        if file_a != None:
-            return file_a
+
+    def getfigurewithaxis(self):
+        if self.plotratio:
+            fig, (ax1, ax2) = plt.subplots(2, sharex=True, gridspec_kw={'height_ratios': [5, 1]}, constrained_layout=True)
         else:
-            print("wrong filename or hi or axis")
-            return 0
-    
+            fig, ax1 = plt.subplots(1, constrained_layout=True)
+            ax2 = plt.gca()
+        return fig, ax1, ax2
+
+    def getfiles(self):
+        return self._files
 
 class normalplot():
     def __init__(self,plotter,filename,hi,axis,rebin=1,colors='',pklfiles='',fontsize='xx-small',ncol=1,printplotnames=True,xlabel=None):
         print(f'Plotting {filename}')
         self.data=''
-        his=hi
-        axes=axis
+        self.his=hi
+        self.axes=axis
+        self.colors=colors
         self.plotter=plotter
-        self._files=plotter._files
+        self.rebin=rebin
+        self.printplotnames=printplotnames
         SSaveLocation=plotter._SSaveLocation
-        if plotter._ps['hepstyle']=='ROOT':
-            hep.style.use(hep.style.ROOT)
+        hep.style.use(hep.style.ROOT) if plotter._ps['hepstyle'] == 'ROOT' else None
+        hep.style.use("CMS") if plotter._ps['hepstyle']=='CMS' else None
+        fig,ax1,ax2=plotter.getfigurewithaxis()
+        hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year,ax=ax1) if plotter._ps['hepstyle']=='CMS' else None
+        self.his=self.his.split(','); self.axes=self.axes.split(',');
 
-        if plotter._ps['hepstyle']=='CMS':
-            hep.style.use("CMS")
-            
-        if plotter.plotratio:
-            fig, ax = plt.subplots(2,sharex=True,gridspec_kw={'height_ratios': [5, 1]},constrained_layout=True)
-            ax1=ax[0]
-            ax2=ax[1]
-        else:
-            fig, ax1 = plt.subplots(1,constrained_layout=True)
-            ax2=plt.gca()
-
-        if plotter._ps['hepstyle']=='CMS':
-            hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year,ax=ax1)
-
-        
-        nostack=[]
-        stack=[]
-        nostacklabels=[]
-        nostackcolors=[]
-        stacklabels=[]
-        stackcolors=[]
-        stackscales=[]
-        nostackscales=[]
-        
-        stackerrors=[]
-        nostackerrors=[]
-        stack_isdatalist=[]
-        nostack_isdatalist=[]
-
-        his=his.split(',')
-        axes=axes.split(',')
-        
-        #if not pklfiles: pklfiles=self._files
-        listcolors=colors
-
-        if pklfiles: LABELS=pklfiles.split(',')
-        else:
-            LABELS=[]
-            for myfile in self._files:
-                LABELS.append(myfile['label'])
-        
-        
-        for file in self._files:
-            if file['label'] not in LABELS:
-                continue
-            if not colors:
-                listcolors= [file['color']]*len(his)
-            else:
-                listcolors=colors.split(',')
-            for hi,axis,color in zip(his,axes,listcolors):
-                _ch=file['coffehists'][hi]
-                _color=color
-                _stack=file['stack']
-                _scale=file['scale']
-                _isdata=file['isdata']
-                if printplotnames:
-                    _label=file['label']+ f'({hi})'
-                else:
-                    _label=file['label']
-                if plotter.printmeanvar:
-                    meanvar=getmeanvar(hi=_ch)
-                    mean,var,num=meanvar['mean'],meanvar['var'],meanvar['num']
-                    _label = _label + f'( mean = {mean}, var = {var}, entries= {num} )'
-                project=_ch.project(axis).to_hist()[::skhist.rebin(rebin)]
-                if(_stack=='stack'):
-                    with np.errstate(divide='ignore',invalid='ignore'):
-                        stackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
-                    stack_isdatalist.append(_isdata)
-                    stack.append(project)
-                    stacklabels.append(_label)
-                    stackcolors.append(_color)
-                    stackscales.append(_scale)
-                if(_stack=='nostack'):
-                    with np.errstate(divide='ignore',invalid='ignore'):
-                        nostackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
-                    nostack_isdatalist.append(_isdata)
-                    nostack.append(project)
-                    nostacklabels.append(_label)
-                    nostackcolors.append(_color)
-                    nostackscales.append(_scale)
+        (nostack, stack, nostacklabels, nostackcolors, stacklabels,stackcolors,stackscales, nostackscales, stackerrors, nostackerrors,
+         stack_isdatalist, nostack_isdatalist) = self.get_stacks_and_overlays(plotter,pklfiles)
+    
         if len(stack)!=0:
             scaledstacks=[plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)]
-            hep.histplot(scaledstacks,lw=1,ax=ax1,
-                         stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+            hep.histplot(scaledstacks,lw=1,ax=ax1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
             self.fullstack=sum(scaledstacks)
             try:
                 ax1.fill_between(self.fullstack.axes[0].centers,#,ax=ax1,
@@ -245,10 +175,7 @@ class normalplot():
                                  hatch='/////', zorder=2, color= 'none',edgecolor='k',step='mid',alpha=0.6,label='stat_unc')
             except:
                 print("Not plotting errors")
-            
-            #stackerrors_=
-            #values=[plotter.geths((st.to_hist())[:: skhist.rebin(rebin)]).values 
-            
+                        
         if len(nostack)!=0:
             
             for nst,scaleit,labelit,colorit,isdatait in zip(nostack,nostackscales,nostacklabels,
@@ -274,15 +201,13 @@ class normalplot():
                     
             if plotter.plotratio and self.data:
                 xlbl = ax1.get_xaxis().get_label()
-                #print(xlbl.get_text())
-                #print(xlbl)
                 ratio = (self.data.values()/self.fullstack.values())
                 err_down, err_up  = ratio_uncertainty(self.data.values(), self.fullstack.values())##Needs to be checked
                 ax2.errorbar(self.data.axes[0].centers,ratio,yerr=(err_down, err_up),fmt='k.',markersize=8)
                 if not xlabel:xlabel=xlbl.get_text()
-                ax2.set_xlabel(xlabel)
-                ax1.set_xlabel(None)
-                ax2.set_ylim(0,2)
+                ax2.set_xlabel(xlabel);
+                ax1.set_xlabel(None);
+                ax2.set_ylim(0,2);
                 ax2.axhline(y=1, color='black', linestyle='--')
                 
         ax1.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
@@ -298,13 +223,51 @@ class normalplot():
             self.scaledhists=[plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)]
         else:
             plt.close()
+
+
+    def get_stacks_and_overlays(self,plotter,pklfiles):
+        # Pick the pkl files to plot and also get the labels
+        LABELS=pklfiles.split(',') if pklfiles else [myfile['label'] for myfile in plotter._files]                
+        listcolors=self.colors
+        nostack, stack, nostacklabels, nostackcolors, stacklabels,stackcolors,stackscales, nostackscales = [], [], [], [], [], [], [], []
+        stackerrors, nostackerrors, stack_isdatalist, nostack_isdatalist = [], [], [], []
+
+        for file in plotter._files:
+            ## Only plot pkl files that have been specified
+            if file['label'] not in LABELS: continue
+            
+            ### fill list of colors in given as options
+            listcolors= [file['color']]*len(self.his) if not self.colors else self.colors.split(',')
+            
+            for hi,axis,color in zip(self.his,self.axes,listcolors):
+                _ch=file['coffehists'][hi]; _color=color; _stack=file['stack']; _scale=file['scale']; _isdata=file['isdata']
+                project=_ch.project(axis).to_hist()[::skhist.rebin(self.rebin)]
+                _label=file['label']+ f'({hi})' if self.printplotnames else file['label']
+                
+                #Print stat on plot if needed
+                if plotter.printmeanvar:
+                    meanvar=getmeanvar(h=plotter.geths(project,_scale))
+                    mean,var,num=meanvar['mean'],meanvar['var'],meanvar['num']
+                    _label = _label + f'( mean = {mean}, var = {var}, entries= {num} )'
+                    
+                if(_stack=='stack'):
+                    with np.errstate(divide='ignore',invalid='ignore'):
+                        stackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
+                    stack_isdatalist.append(_isdata); stack.append(project); stacklabels.append(_label); stackcolors.append(_color); stackscales.append(_scale)
+                if(_stack=='nostack'):
+                    with np.errstate(divide='ignore',invalid='ignore'):
+                        nostackerrors.append(np.nan_to_num(np.sqrt(project.variances())/project.values()))
+                    nostack_isdatalist.append(_isdata);nostack.append(project); nostacklabels.append(_label); nostackcolors.append(_color); nostackscales.append(_scale)
+                    
+        return (nostack, stack, nostacklabels, nostackcolors, stacklabels,stackcolors,stackscales, nostackscales, stackerrors, nostackerrors, stack_isdatalist, nostack_isdatalist)
+
+    
     def getstack(self):
         return self.hists,self.scaledhists,self.stackerrors
-    def getfiles(self):
-        return self._files
-    
-def getmeanvar(hi):
-    n, bins = hi.integrate('process').to_hist().to_numpy()
+
+def getmeanvar(h):
+    n, bins = h.to_numpy()
+    #print(n)
     mids=0.5*(bins[1:] + bins[:-1])
     num=np.sum(n)
     mean=np.average(mids, weights=n).round(2)
