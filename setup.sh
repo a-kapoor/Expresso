@@ -46,5 +46,11 @@ testplot () {
     }
 
 lumical () {
+    if [ "$1" == "-h" ] ; then
+	echo "Usage: lumical <path to data json> <full or mask> "
+	echo "Usage: lumical blabla/DoubleMuon.json mask"
+    return
+    fi
+
     rm -rf Analysis/LumiCal/lumi.txt; ./expresso.py --NumberOfTasks 1000000 --Analysis Analysis/LumiCal/ --PassOptions $2 --Sample $1 --ChunkSize 1000000;awk '{ sum += $1 } END { printf "Luminosity is:  %d pb⁻¹\n", sum}' Analysis/LumiCal/lumi.txt;rm -rf Analysis/LumiCal/lumi.txt
     }
