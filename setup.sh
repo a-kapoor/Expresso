@@ -42,7 +42,7 @@ testanatight () {
     ./expresso.py --Samples Analysis/barebones/samples.txt --Analysis barebones --NumberOfTasks 2 --Debug --SaveRoot --AnalysisPoint tight_ele_tight_mu
 }
 testplot () {
-    python plot+.py --PlotterScript Analysis/barebones/allplots.yaml --HistoFolder Output/Analysis/barebones/output/analysis/ --SaveLocation Output/Analysis/barebones/output/analysis/
+    python Analysis/barebones/plot.py
     }
 
 lumical () {
