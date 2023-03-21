@@ -99,7 +99,12 @@ def main():
     # For data this this should all be the same
     nEvents,nGenEvents,nSumOfWeights = output,output,output
   else:
-    nEvents, nGenEvents, nSumOfWeights, isData = GetAllInfoFromFile(filesWithPrefix, treeName)
+    try:
+      nEvents, nGenEvents, nSumOfWeights, isData = GetAllInfoFromFile(filesWithPrefix, treeName)
+    except:
+      print('JSON for a normal tree needs to be created by hand, sorry.')
+      
+      
 
   # Any samples coming from DAS won't have EFT weights/WCs, saves having to actually access remote files
   if isDAS:

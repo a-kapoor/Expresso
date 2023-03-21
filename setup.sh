@@ -42,5 +42,15 @@ testanatight () {
     ./expresso.py --Samples Analysis/barebones/samples.txt --Analysis barebones --NumberOfTasks 2 --Debug --SaveRoot --AnalysisPoint tight_ele_tight_mu
 }
 testplot () {
-    python plot+.py --PlotterScript Analysis/barebones/allplots.yaml --HistoFolder Output/Analysis/barebones/output/analysis/ --SaveLocation Output/Analysis/barebones/output/analysis/
+    python Analysis/barebones/plot.py
+    }
+
+lumical () {
+    if [ "$1" == "-h" ] ; then
+	echo "Usage: lumical <path to data json> <full or mask> "
+	echo "Usage: lumical blabla/DoubleMuon.json mask"
+    return
+    fi
+
+    rm -rf Analysis/LumiCal/lumi.txt; ./expresso.py --NumberOfTasks 1000000 --Analysis Analysis/LumiCal/ --PassOptions $2 --Sample $1 --ChunkSize 1000000;awk '{ sum += $1 } END { printf "Luminosity is:  %d pb⁻¹\n", sum}' Analysis/LumiCal/lumi.txt;rm -rf Analysis/LumiCal/lumi.txt
     }

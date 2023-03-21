@@ -45,7 +45,7 @@ for sample in Config[plotyaml['year']].keys():
     
 for plot in Config['plots'].keys():
     plotyaml[plot]={}
-    
+    plotname=plot.split('_',1)[1]
     for i,sample in enumerate(Config[plotyaml['year']].keys()): 
         plotyaml[plot][str(i+1)]={}
         stack=False
@@ -55,8 +55,7 @@ for plot in Config['plots'].keys():
         color=Config[plotyaml['year']][sample].split(",")[1]
         
         scale=int(Config[plotyaml['year']][sample].split(",")[3])
-        
-        plotyaml[plot][str(i+1)][Config['plots'][plot]]={'axis':Config['plots'][plot],
+        plotyaml[plot][str(i+1)][plotname]={'axis':Config['plots'][plot],
                                                          'file': sample,'stack': stack,'scale':scale}
         plotyaml[plot][str(i+1)]['args']={'color':color,'label':sample}
 

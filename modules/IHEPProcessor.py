@@ -147,10 +147,9 @@ class IHEPProcessor(processor.ProcessorABC):
         self._ET.autolog(f'######### Job stamp: {str(threadn)+str(datetime.now().strftime("_t-%H_%M_%S"))}',self._logger,'qqqq')
         self._ET.autolog(f'#########-----------------------------------------------------########',self._logger,'qqqq')
 
-        if self._debug:
-            print(events.Electron.fields)
-            layout = ak.operations.convert.to_layout(events, allow_record=True, allow_other=True).keys()
-            print(layout)
+        #if self._debug:
+            #layout = ak.operations.convert.to_layout(events, allow_record=True, allow_other=True).keys()
+            #print(layout)
         
         now = datetime.now()
         dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
@@ -182,7 +181,7 @@ class IHEPProcessor(processor.ProcessorABC):
         ######################################
         pars={}
         ######################################
-        pars['dataset'],pars['isData'],pars['histAxisName'],pars['year'],pars['xsec'],pars['sow']=ET.getInfo(events,self._samples)
+        pars['dataset'],pars['isData'],pars['histAxisName'],pars['year'],pars['xsec'],pars['sow'],pars['nEvents']=ET.getInfo(events,self._samples)
         pars['analysispoint']=self._analysispoint
         pars['passoptions']=self._passoptions
         #------- preprocess (mostly create objects and special event variables)
@@ -285,6 +284,16 @@ class IHEPProcessor(processor.ProcessorABC):
         summarydata.loc['Percent_Events']= summarydata.loc['Percent_Events'].astype(float).round(2).apply(str)+'%'
         
         original_stdout = sys.stdout # Save a reference to the original standard output
+        eventsthatwenttoanalysis=summarydata['ev_analysis ']['Total_Events']
+        if eventsthatwenttoanalysis<1:
+            if not self._debug:
+                print('Zero events went to analysis! Please check for errors by running with the --Debug option')
+                print('Or Check error logs!!')
+                exit()
+            else:
+                print('Zero events went to analysis! Check for any errors above.')
+                
+                exit()
         with open(f'{self._summarylog}', 'a') as f:
             sys.stdout = f # Change the standard output to the file we created.
             print(summarydata.to_markdown())

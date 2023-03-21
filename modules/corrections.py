@@ -123,26 +123,31 @@ def fakeRateWeight3l(events, lep1, lep2, lep3):
     events['fakefactor_3l%s'%syst]=fakefactor_3l
 
 
-def AttachMuonSF(muons, year):
+def AttachMuonSF(ev,muon, year):
   '''
     Description:
       Inserts 'sf_nom', 'sf_hi', and 'sf_lo' into the muons array passed to this function. These
       values correspond to the nominal, up, and down muon scalefactor values respectively.
   '''
-  eta = np.abs(muons.eta)
-  pt = muons.pt
+  eta = np.abs(ev[muon].eta)
+  pt = ev[muon].pt
   if year not in ['2016','2016APV','2017','2018']: raise Exception(f"Error: Unknown year \"{year}\".")
   reco_sf  = np.where(pt<20,SFevaluator['MuonRecoSF_{year}'.format(year=year)](eta,pt),1) #sf=1 when pt>20 becuase there is no reco SF available
   reco_err = np.where(pt<20,SFevaluator['MuonRecoSF_{year}_er'.format(year=year)](eta,pt),0) #sf error =0 when pt>20 becuase there is no reco SF available
   new_sf  = SFevaluator['MuonSF_{year}'.format(year=year)](eta,pt)
   new_err = SFevaluator['MuonSF_{year}_er'.format(year=year)](eta,pt)
 
-  muons['sf_nom_2l'] = new_sf*reco_sf
-  muons['sf_hi_2l']  = (new_sf+new_err)*(reco_sf+reco_err)
-  muons['sf_lo_2l']  = (new_sf-new_err)*(reco_sf-reco_err)
-  muons['sf_nom_3l'] = new_sf*reco_sf
-  muons['sf_hi_3l']  = (new_sf+new_err)*(reco_sf+reco_err)
-  muons['sf_lo_3l']  = (new_sf-new_err)*(reco_sf-reco_err)
+  ev[muon,'sf_nom_2l'] = new_sf*reco_sf
+  ev[muon,'sf_hi_2l']  = (new_sf+new_err)*(reco_sf+reco_err)
+  ev[muon,'sf_lo_2l']  = (new_sf-new_err)*(reco_sf-reco_err)
+
+  ev[muon,'sf_nom'] = new_sf*reco_sf
+  ev[muon,'sf_hi']  = (new_sf+new_err)*(reco_sf+reco_err)
+  ev[muon,'sf_lo']  = (new_sf-new_err)*(reco_sf-reco_err)
+  
+  ev[muon,'sf_nom_3l'] = new_sf*reco_sf
+  ev[muon,'sf_hi_3l']  = (new_sf+new_err)*(reco_sf+reco_err)
+  ev[muon,'sf_lo_3l']  = (new_sf-new_err)*(reco_sf-reco_err)
 
 
 def AttachElectronSF(electrons, year):
