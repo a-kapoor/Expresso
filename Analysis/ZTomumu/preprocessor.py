@@ -1,6 +1,8 @@
 from asyncio import events
 from modules.corrections import SFevaluator, GetBTagSF, ApplyJetCorrections, GetBtagEff, AttachMuonSF, AttachElectronSF, AttachPerLeptonFR, GetPUSF, ApplyRochesterCorrections, ApplyJetSystematics, AttachPSWeights, AttachPdfWeights, AttachScaleWeights, GetTriggerSF
-
+from modules.objects import isTightTau
+from modules.cut import isClean
+import awkward as ak
 
 def preprocess(pars, events, AttachSF=False):
     import modules.ExpressoTools as ET
@@ -35,12 +37,26 @@ def preprocess(pars, events, AttachSF=False):
 
     events["Muon","pt"]=ApplyRochesterCorrections(year, events["Muon"], isData, var='nominal')
     AttachMuonSF(events,"Muon",year=year)
-    events["recoMu"]=events.Muon[(events.Muon.mediumId==True) &
+    events["recoMu"]=events.Muon[(events.Muon.tightId==True) &
                                  (events.Muon.pt > 30) &
                                  (abs(events.Muon.eta)<2.4) &
                                  (events.Muon.pfIsoId>=3)]
+
+    events["recoEle"]=events.Electron[(events.Electron.mvaFall17V2Iso_WP90==True) &
+                                      (events.Electron.pt > 30) &
+                                      (abs(events.Electron.eta)<2.4) &
+                                      (events.Electron.jetRelIso<1.0)]
+
+    events["recoLep"] = ak.with_name(ak.concatenate([events["recoEle"], events["recoMu"]], axis=1), 'PtEtaPhiMCandidate')
+    
     events["Photon","cutBasedBitmap"]=events.Photon.vidNestedWPBitmap # adding because my nano is v9 and the name is vidNestedWPBitmap
     events["recoPho"]=events.Photon[(events.Photon.cutBasedBitmap >=2) & (events.Photon.pt > 10) & (abs(events.Photon.eta)<2.5)]
+
+    tausel=(isClean(events.Tau,events.recoLep,drmin=0.3)) & (events.Tau.pt > 20)
+    #tausel=(isClean(events.Tau,events.recoLep,drmin=0.3)) & (isTightTau(events.Tau.idDeepTau2017v2p1VSjet)) & (events.Tau.pt > 20)
+    events["recoTau"]=events.Tau[tausel]# & (events.Tau.idDecayModeOldDMs == 1)]
+
+    
 
         
     ################################### Keep the return line as is

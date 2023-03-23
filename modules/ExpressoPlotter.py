@@ -42,6 +42,7 @@ class ExpressoPlotter():
         self._LABELS=[]
         self._year=year
         self._plots=[]
+        self.lumi=0.0
         self.plot_live=False
         self.printmeanvar=False
         self.isnotebook=False
@@ -57,6 +58,7 @@ class ExpressoPlotter():
         self._yerr=None
     def print_stat(self):
         self.printmeanvar=True
+        self.printstat=True
     def plot_ratio(self):
         self.plotratio=True
         
@@ -158,7 +160,7 @@ class normalplot():
         hep.style.use(hep.style.ROOT) if plotter._ps['hepstyle'] == 'ROOT' else None
         hep.style.use("CMS") if plotter._ps['hepstyle']=='CMS' else None
         fig,ax1,ax2=plotter.getfigurewithaxis()
-        hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year,ax=ax1) if plotter._ps['hepstyle']=='CMS' else None
+        hep.cms.label(plotter._ps["PrivateLabel"], data=plotter._ps["withdata"], year=plotter._year,ax=ax1,lumi=round(plotter.lumi/1000,3)) if plotter._ps['hepstyle']=='CMS' else None
         self.his=self.his.split(','); self.axes=self.axes.split(',');
 
         (nostack, stack, nostacklabels, nostackcolors, stacklabels,stackcolors,stackscales, nostackscales, stackerrors, nostackerrors,
@@ -198,19 +200,24 @@ class normalplot():
                     hep.histplot(self.data,ax=ax1,
                                  lw=2,stack=False,histtype='errorbar',label=labelit,color=colorit)
 
-                    
+            plain_ratio=0        
             if plotter.plotratio and self.data:
                 xlbl = ax1.get_xaxis().get_label()
                 ratio = (self.data.values()/self.fullstack.values())
                 err_down, err_up  = ratio_uncertainty(self.data.values(), self.fullstack.values())##Needs to be checked
+                if plotter.printstat:
+                    plain_ratio=round(sum(self.data.values())/sum(self.fullstack.values()),2)
                 ax2.errorbar(self.data.axes[0].centers,ratio,yerr=(err_down, err_up),fmt='k.',markersize=8)
                 if not xlabel:xlabel=xlbl.get_text()
                 ax2.set_xlabel(xlabel);
                 ax1.set_xlabel(None);
                 ax2.set_ylim(0,2);
                 ax2.axhline(y=1, color='black', linestyle='--')
-                
-        ax1.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)#,bbox_to_anchor=(0.5, 1.05),ncol=3, fancybox=True, shadow=True)
+            if plotter.printstat:
+                ax1.legend(title=f'Data/Bkg= {plain_ratio}',loc='best',fontsize=fontsize,ncol=1,fancybox=True,title_fontsize=fontsize)
+            else:
+                ax1.legend(loc='best',fontsize=fontsize,ncol=1,fancybox=True)
+                    
         if not plotter.plotratio and not self.data:
             if xlabel:
                 ax1.set_xlabel(xlabel)
@@ -248,7 +255,7 @@ class normalplot():
                 if plotter.printmeanvar:
                     meanvar=getmeanvar(h=plotter.geths(project,_scale))
                     mean,var,num=meanvar['mean'],meanvar['var'],meanvar['num']
-                    _label = _label + f'( mean = {mean}, var = {var}, entries= {num} )'
+                    _label = _label + f'( mean = {mean}, var = {var}, integral= {num} )'
                     
                 if(_stack=='stack'):
                     with np.errstate(divide='ignore',invalid='ignore'):

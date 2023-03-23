@@ -1,4 +1,5 @@
 import modules.cut_configure as cut
+import awkward as ak
 def ispresTau(pt, eta, dxy, dz, idDeepTau2017v2p1VSjet, minpt=20.0):
     return  (pt>minpt)&(abs(eta)< cut.eta_tau_cut )&(abs(dxy)<cut.dxy_tau_cut)&(abs(dz)<cut.dz_tau_cut) & (idDeepTau2017v2p1VSjet>>1 & 1 ==1)
 
