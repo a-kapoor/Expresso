@@ -45,6 +45,7 @@ class ExpressoPlotter():
         self.lumi=0.0
         self.plot_live=False
         self.printmeanvar=False
+        self.printstat=False
         self.isnotebook=False
         self._yerr=True
         self.plotratio=False
