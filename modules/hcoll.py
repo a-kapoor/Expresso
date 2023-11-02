@@ -2,7 +2,7 @@
 This code defines a class hcoll which is the main histogramming class of expresso. Every instance of hcoll contains a collection of hist histograms. The fill method of the class fills the histogram with the given data. The get method returns the histogram. The binning function returns a list of numbers from a to b with a step size of c. The __main__ block prints some information about the class and a message to see the testAnalysis folder to create your own barebones analysis.
 '''
 import numpy as np
-
+import awkward as ak
 # Define the hcoll class
 class hcoll:
     # Define the __init__ method

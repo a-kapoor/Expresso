@@ -148,7 +148,7 @@ class ExpressoPlotter():
         return self._files
 
 class normalplot():
-    def __init__(self,plotter,filename,hi,axis,rebin=1,colors='',pklfiles='',fontsize='xx-small',ncol=1,printplotnames=True,xlabel=None):
+    def __init__(self,plotter,filename,hi,axis,rebin=1,colors='',pklfiles='',fontsize='xx-small',ncol=1,printplotnames=True,xlabel=None,log=False):
         print(f'Plotting {filename}')
         self.data=''
         self.his=hi
@@ -169,13 +169,13 @@ class normalplot():
     
         if len(stack)!=0:
             scaledstacks=[plotter.geths(st,scaleit) for st,scaleit in zip(stack,stackscales)]
-            hep.histplot(scaledstacks,lw=1,ax=ax1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
+            hep.histplot(scaledstacks,lw=2,ax=ax1,stack=True,histtype='fill',label=stacklabels, color=stackcolors)
             self.fullstack=sum(scaledstacks)
             try:
-                ax1.fill_between(self.fullstack.axes[0].centers,#,ax=ax1,
-                                 self.fullstack.values()-np.sqrt(self.fullstack.variances()),
-                                 self.fullstack.values()+np.sqrt(self.fullstack.variances()),
-                                 hatch='/////', zorder=2, color= 'none',edgecolor='k',step='mid',alpha=0.6,label='stat_unc')
+                ax1.fill_between(self.fullstack.axes[0].edges,#,ax=ax1,
+                                 np.append(self.fullstack.values()-np.sqrt(self.fullstack.variances()),0),
+                                 np.append(self.fullstack.values()+np.sqrt(self.fullstack.variances()),0),
+                                 hatch='///', zorder=2, facecolor= 'none',edgecolor='gray',step='post',alpha=0.6,label='stat_unc')
             except:
                 print("Not plotting errors")
                         
@@ -186,13 +186,13 @@ class normalplot():
                 if not isdatait:
                     here_h=plotter.geths(nst,scaleit)
                     hep.histplot(here_h,ax=ax1,
-                                 lw=1,stack=False,histtype='step',label=labelit,color=colorit,yerr=False)
+                                 lw=2,stack=False,histtype='step',label=labelit,color=colorit,yerr=False)
                     
                     if plotter._yerr:
-                        ax1.fill_between(here_h.axes[0].centers,
-                                         here_h.values()-np.sqrt(here_h.variances()),
-                                         here_h.values()+np.sqrt(here_h.variances()),
-                                         hatch='', zorder=2, fc='grey',step='mid',alpha=0.6)
+                        ax1.fill_between(here_h.axes[0].edges,
+                                         np.append(here_h.values()-np.sqrt(here_h.variances()),0),
+                                         np.append(here_h.values()+np.sqrt(here_h.variances()),0),
+                                         hatch='', zorder=2,step='post',alpha=0.6, edgecolor='lightgray')
                     
                 else:
                     if scaleit!=1:
@@ -222,6 +222,8 @@ class normalplot():
         if not plotter.plotratio and not self.data:
             if xlabel:
                 ax1.set_xlabel(xlabel)
+        if log:
+            ax1.set_yscale('log')
         #plt.tight_layout()
         plt.savefig(f'{SSaveLocation}/normal_{filename}.pdf', dpi=200)
         if plotter.isnotebook:
